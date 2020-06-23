@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="論文請參考 Squeeze-and-Excitation Networks 。 介紹Squeeze-and-Excitation Network（SENet）是2017是ISVRC classification performance最佳的深度學習網路。SENet針對特徵channel間的相關聯性進行建模，透過計算將重要的特徵圖加重權重，以提升準確率，在這之後SKNet也使用類似的方法，只是是">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Squeeze-and-Excitation Network">
+<meta property="og:url" content="http://yoursite.com/2019/11/08/Squeeze-and-Excitation-Network/index.html">
+<meta property="og:site_name" content="Fan Programming Blog">
+<meta property="og:description" content="論文請參考 Squeeze-and-Excitation Networks 。 介紹Squeeze-and-Excitation Network（SENet）是2017是ISVRC classification performance最佳的深度學習網路。SENet針對特徵channel間的相關聯性進行建模，透過計算將重要的特徵圖加重權重，以提升準確率，在這之後SKNet也使用類似的方法，只是是">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://yoursite.com/2019/11/08/Squeeze-and-Excitation-Network/senet.png">
+<meta property="og:image" content="http://yoursite.com/2019/11/08/Squeeze-and-Excitation-Network/fsq.png">
+<meta property="og:image" content="http://yoursite.com/2019/11/08/Squeeze-and-Excitation-Network/fex.png">
+<meta property="og:image" content="http://yoursite.com/2019/11/08/Squeeze-and-Excitation-Network/fscale.png">
+<meta property="og:image" content="http://yoursite.com/2019/11/08/Squeeze-and-Excitation-Network/error_senet.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/11/08/Squeeze-and-Excitation-Network/se_inception.png">
+<meta property="og:image" content="http://yoursite.com/2019/11/08/Squeeze-and-Excitation-Network/se_resnet.png">
+<meta property="article:published_time" content="2019-11-08T13:26:16.000Z">
+<meta property="article:modified_time" content="2020-06-23T08:04:26.644Z">
+<meta property="article:author" content="Fan">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2019/11/08/Squeeze-and-Excitation-Network/senet.png">
+
+<link rel="canonical" href="http://yoursite.com/2019/11/08/Squeeze-and-Excitation-Network/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Squeeze-and-Excitation Network | Fan Programming Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Fan Programming Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/08/Squeeze-and-Excitation-Network/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Fan">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Fan Programming Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Squeeze-and-Excitation Network
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-11-08 21:26:16" itemprop="dateCreated datePublished" datetime="2019-11-08T21:26:16+08:00">2019-11-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-06-23 16:04:26" itemprop="dateModified" datetime="2020-06-23T16:04:26+08:00">2020-06-23</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <img src="/2019/11/08/Squeeze-and-Excitation-Network/senet.png" class="" title="Fig.1 SeNet (image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1709.01507.pdf)">
+
+<p>論文請參考 <a href="http://openaccess.thecvf.com/content_cvpr_2018/html/Hu_Squeeze-and-Excitation_Networks_CVPR_2018_paper.html" target="_blank" rel="noopener">Squeeze-and-Excitation Networks</a> 。</p>
+<h1 id="介紹"><a href="#介紹" class="headerlink" title="介紹"></a>介紹</h1><p>Squeeze-and-Excitation Network（SENet）是2017是ISVRC classification performance最佳的深度學習網路。SENet針對特徵channel間的相關聯性進行建模，透過計算將重要的特徵圖加重權重，以提升準確率，在這之後SKNet也使用類似的方法，只是是針對使用不同大小卷積核產生的特徵圖加權，使網路抽取不同大小的目標，SKNet說明請參考 <a href="/2020/06/22/Select-Kernel-Networks/" title="連結">連結</a>。</p>
+<a id="more"></a>
+
+<h1 id="結構與原理"><a href="#結構與原理" class="headerlink" title="結構與原理"></a>結構與原理</h1><p>Fig.1為SENet的block，從最左邊看起分四個函數Ftr、Fsq、Fex與Fscale。</p>
+<ul>
+<li>Ftr : 傳統的卷積結構，X為輸入Ｕ為輸出，輸入的大小為H’ X W’而channel為C’，經過卷積Ftr輸出的U的大小為H x W而channel數為C。</li>
+</ul>
+<p>接著開始為SENet增加的結構。</p>
+<img src="/2019/11/08/Squeeze-and-Excitation-Network/fsq.png" class="" title="Fig.2 Fsq (image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1709.01507.pdf)">
+
+<ul>
+<li>Fsq :<br>參考Fig.2，Fsq為squeeze的過程，先對U做Global Average Pooling，由Fig.2公式可得知，作者是針對每個feature map做加總取平均值，再輸出一個1<em>1</em>C的向量，將空間上所有的點的訊息平均成一個值，作者提到用Global Average Pooling可以屏蔽掉空間上分佈的訊息，讓接下來再做scale的計算能更加精確，這也對應到其效果比Network In Network（<a href="/2019/11/29/Network-In-Network/" title="Network In Network 解析">Network In Network 解析</a>）更好，因為Network In Network是對每個channel直接做1X1卷積，並沒有屏蔽掉空間上分佈的訊息。</li>
+</ul>
+<img src="/2019/11/08/Squeeze-and-Excitation-Network/fex.png" class="" title="Fig.3 Fex (image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1709.01507.pdf)">
+
+<ul>
+<li>Fex :<br>在取得1<em>1</em>C向量後，由Fig.3公式可得，Fex是由兩個全鏈結層來實現，第一個全鏈結層W1z，將z從C個channel壓縮成C/r個channel，再經過一個RELU，第二個全鏈結層W2z將前個輸出從C/r輸出成C個channel，再經過Sigmoid，將值限制到[0,1]範圍。<br>r的部分作者稱之為壓縮比例，並在各種嘗試下作者提出r=16時在性能和計算間最平衡。<br>為什麼要使用全鏈結層？利用channel相關聯性來訓練出真正的scale。</li>
+</ul>
+<img src="/2019/11/08/Squeeze-and-Excitation-Network/fscale.png" class="" title="Fig.4 Fscale (image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1709.01507.pdf)">
+
+<ul>
+<li>Fscale :<br>取得scale向量之後，Fscale公式參考Fig.4，將s element-wise與U相乘，增強重要的特徵，加權後新的特徵作者稱之為feature recalibration。</li>
+</ul>
+<h1 id="錯誤結構分析"><a href="#錯誤結構分析" class="headerlink" title="錯誤結構分析"></a>錯誤結構分析</h1><img src="/2019/11/08/Squeeze-and-Excitation-Network/error_senet.jpg" class="" title="Fig.5 Comparasion With Different Structure (image source : https:&#x2F;&#x2F;zhuanlan.zhihu.com&#x2F;p&#x2F;32702350)">
+
+<p>參考Fig5.，三種不恰當的設計</p>
+<ol>
+<li>squeeze的輸出直接當作scale，基本上Global Average Pooling是沒有參數可以訓練的，沒辦法透過訓練去學習出各個通道的重要性。</li>
+<li>直接透過卷積層，卷積時就已經有channel相關聯性在裡面，為什麼還需要SENet結構？那是因為卷積有包括空間成份在裡面，為了排除空間成份的干擾，先用Global Average Pooling壓縮成一個點再做卷積，去找出channel間的關聯性，也因沒了高寬，這種卷積其實就是全鏈結層。</li>
+<li>因為X跟U的相關聯性是不同的，將用U計算出來的scal使用到X上不合適。</li>
+</ol>
+<h1 id="實現"><a href="#實現" class="headerlink" title="實現"></a>實現</h1><img src="/2019/11/08/Squeeze-and-Excitation-Network/se_inception.png" class="" title="Fig.6 SENet與Inception (image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1709.01507.pdf)">
+
+<img src="/2019/11/08/Squeeze-and-Excitation-Network/se_resnet.png" class="" title="Fig.7 SENet與Resnet (image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1709.01507.pdf)">
+
+<p>由Fig.6與Fig.7可得知SENet很大的優點在於能很方便的套用到現有的網路中，提升性能同時，代價很小。</p>
+<h1 id="總結"><a href="#總結" class="headerlink" title="總結"></a>總結</h1><p>能有效地提升性能，但代價很小，透過對channel進行加權，將有效的訊息進行強化，能應用在Inception,Inception-ResNet,ResNet,ResNeXt網路中。</p>
+<h1 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h1><ol>
+<li><a href="https://zhuanlan.zhihu.com/p/32702350" target="_blank" rel="noopener">解读Squeeze-and-Excitation Networks（SENet）</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/33004957" target="_blank" rel="noopener">深度学习——分类之SENet</a></li>
+<li><a href="https://blog.csdn.net/u013066730/article/details/95217067" target="_blank" rel="noopener">SENet理解</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2019/11/29/Network-In-Network/" rel="next" title="Network In Network">
+      Network In Network <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#介紹"><span class="nav-number">1.</span> <span class="nav-text">介紹</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#結構與原理"><span class="nav-number">2.</span> <span class="nav-text">結構與原理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#錯誤結構分析"><span class="nav-number">3.</span> <span class="nav-text">錯誤結構分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#實現"><span class="nav-number">4.</span> <span class="nav-text">實現</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#總結"><span class="nav-number">5.</span> <span class="nav-text">總結</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Reference"><span class="nav-number">6.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Fan</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/chensheep" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;chensheep" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:chensheep1005@gmail.com" title="E-Mail → mailto:chensheep1005@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Fan</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  <script color='0,0,255' opacity='0.5' zIndex='-1' count='99' src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

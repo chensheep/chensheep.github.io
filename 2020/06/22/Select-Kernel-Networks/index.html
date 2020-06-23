@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="論文請參考 arXiv:1903.06586 。 介紹Select Kernel Networks（SKNets）於2019提出，為ResNet後在CNN上的改進。 主要提出解決過去CNN網路Receptive Field都是固定大小，但實際上的資料集，一張圖中目標物件的大小不一定是一樣的，所以這篇論文提出一個可以動態選擇使用哪種Receptive Field有較好預測結果的方法。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Select Kernel Networks">
+<meta property="og:url" content="http://yoursite.com/2020/06/22/Select-Kernel-Networks/index.html">
+<meta property="og:site_name" content="Fan Programming Blog">
+<meta property="og:description" content="論文請參考 arXiv:1903.06586 。 介紹Select Kernel Networks（SKNets）於2019提出，為ResNet後在CNN上的改進。 主要提出解決過去CNN網路Receptive Field都是固定大小，但實際上的資料集，一張圖中目標物件的大小不一定是一樣的，所以這篇論文提出一個可以動態選擇使用哪種Receptive Field有較好預測結果的方法。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/Select-Kernel-Networks/skunit.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/Select-Kernel-Networks/sknet.png">
+<meta property="article:published_time" content="2020-06-22T05:42:47.000Z">
+<meta property="article:modified_time" content="2020-06-23T08:04:26.649Z">
+<meta property="article:author" content="Fan">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/06/22/Select-Kernel-Networks/skunit.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/06/22/Select-Kernel-Networks/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Select Kernel Networks | Fan Programming Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Fan Programming Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/06/22/Select-Kernel-Networks/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Fan">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Fan Programming Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Select Kernel Networks
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-06-22 13:42:47" itemprop="dateCreated datePublished" datetime="2020-06-22T13:42:47+08:00">2020-06-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-06-23 16:04:26" itemprop="dateModified" datetime="2020-06-23T16:04:26+08:00">2020-06-23</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <img src="/2020/06/22/Select-Kernel-Networks/skunit.png" class="" title="Fig.1 skunit image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1903.06586.pdf">
+
+<p>論文請參考 <a href="https://arxiv.org/abs/1903.06586" target="_blank" rel="noopener">arXiv:1903.06586</a> 。</p>
+<h1 id="介紹"><a href="#介紹" class="headerlink" title="介紹"></a>介紹</h1><p>Select Kernel Networks（SKNets）於2019提出，為ResNet後在CNN上的改進。</p>
+<p>主要提出解決過去CNN網路Receptive Field都是固定大小，但實際上的資料集，一張圖中目標物件的大小不一定是一樣的，所以這篇論文提出一個可以動態選擇使用哪種Receptive Field有較好預測結果的方法。</p>
+<a id="more"></a>
+
+<p>Selective Kernel (SK) unit在這篇論文中被提出，SK unit使用多個分支，分別為不同的卷積核大小，最後一不同的權重將所有分支合在一起，非常類似SENet的做法，只是SENet是對不同的通道去加權。</p>
+<p>最後將Selective Kernel (SK) unit堆疊產生Selective Kernel Network (SKNets)。</p>
+<p>另外作者也做了實驗，將樣本圖片中的目標物件放大，可觀察到相對大的卷積核可獲取更有效的資訊。</p>
+<p>接著我們解釋幾個論文個重點</p>
+<h1 id="Selective-Kernel-SK-unit"><a href="#Selective-Kernel-SK-unit" class="headerlink" title="Selective Kernel (SK) unit"></a>Selective Kernel (SK) unit</h1><p>參考Fig.1。，SK unit主要由三部份組成，Split、Fuse與Select，在這張圖中Split部分為兩個分支，實際上可分成更多的分支，使用不同的卷積核。</p>
+<h2 id="Split"><a href="#Split" class="headerlink" title="Split"></a>Split</h2><p>在這裡使用兩個分支，其一為3x3卷積，另一個為5X5卷積，裡面都包含Batch Normalization與ReLU。<br>另外關於5X5卷積部分，不是使用一般的5X5卷積，為減少運算量，使用了空洞卷積(Dilated Convolution)，大小為3，dilation大小為2。<br>完成卷積後將兩個特徵圖element-wise相加，也保留這些特徵圖到Select使用。</p>
+<h2 id="Fuse"><a href="#Fuse" class="headerlink" title="Fuse"></a>Fuse</h2><p>這部分跟SENet做法類似，主要分成兩個步驟</p>
+<ol>
+<li>Global Average Pooling</li>
+<li>Fully Connected Layer<br>第一步針對Ｕ每個channel做Global Average Pooling產程Ｓ，Ｓ維度為（C X 1)<br>第二步 W X S 其中Ｗ維度為（d X C）再經過ReLU產生Ｚ（d X 1），作者指出目的為減少運算量，我認為也有壓縮凸顯特徵的功用類似word embeding的概念。<br>d是如何決定的，這邊作者設定為max(C/r, L)最小為Ｌ=32，設定r去做實驗。</li>
+</ol>
+<h2 id="Select"><a href="#Select" class="headerlink" title="Select"></a>Select</h2><p>獲得Ｚ之後，目的要算出對於在Split階段使用不同RF產生出來的特徵圖的權重。<br>在此我們有兩個分支，所以需產生出兩個向量分別為a、b，與Fuse中產生Z的方法類似，Ｗa X Z 與 Ｗb X Z分別產生兩個向量後，因為我們目的在於產生兩個特徵圖的權重，所以在針對每個通道去做softmax即可以獲得在每個通道上兩張特徵圖所佔的比例。<br>最後得到a、b向量後再分別與兩個分支的特徵圖做element-wise相乘，再將乘玩的兩個特徵圖element-wise相加。</p>
+<h1 id="SKNets"><a href="#SKNets" class="headerlink" title="SKNets"></a>SKNets</h1><img src="/2020/06/22/Select-Kernel-Networks/sknet.png" class="" title="Fig.2 sknet(image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1903.06586.pdf)">
+
+<p>參考Fig.2，圖中顯示SKNet-50的訓練參數並沒有明顯的增加。</p>
+<h1 id="實驗結果"><a href="#實驗結果" class="headerlink" title="實驗結果"></a>實驗結果</h1>
+
+<p>參考Fig.3。</p>
+<h1 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h1><ul>
+<li><a href="https://arxiv.org/abs/1903.06586" target="_blank" rel="noopener">arXiv:1903.06586</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/06/22/SSPre-20200622/" rel="prev" title="Semantic Segmentation Presentation (2020/06/21)">
+      <i class="fa fa-chevron-left"></i> Semantic Segmentation Presentation (2020/06/21)
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#介紹"><span class="nav-number">1.</span> <span class="nav-text">介紹</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Selective-Kernel-SK-unit"><span class="nav-number">2.</span> <span class="nav-text">Selective Kernel (SK) unit</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Split"><span class="nav-number">2.1.</span> <span class="nav-text">Split</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Fuse"><span class="nav-number">2.2.</span> <span class="nav-text">Fuse</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Select"><span class="nav-number">2.3.</span> <span class="nav-text">Select</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#SKNets"><span class="nav-number">3.</span> <span class="nav-text">SKNets</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#實驗結果"><span class="nav-number">4.</span> <span class="nav-text">實驗結果</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Reference"><span class="nav-number">5.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Fan</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/chensheep" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;chensheep" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:chensheep1005@gmail.com" title="E-Mail → mailto:chensheep1005@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Fan</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  <script color='0,0,255' opacity='0.5' zIndex='-1' count='99' src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

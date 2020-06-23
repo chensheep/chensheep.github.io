@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="這篇文章為個人擔任Marcel開辦的全方位AI課程助教，整理於2020&#x2F;06&#x2F;21報告Semantic Segementation與R-CNN的內容。包含：  Overview R-CNN Family Mask R-CNN Mask Scroing R-CNN MNIST of Semantic Segmentation  OverviewWhat is semantic segmentatio">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Semantic Segmentation Presentation (2020&#x2F;06&#x2F;21)">
+<meta property="og:url" content="http://yoursite.com/2020/06/22/SSPre-20200622/index.html">
+<meta property="og:site_name" content="Fan Programming Blog">
+<meta property="og:description" content="這篇文章為個人擔任Marcel開辦的全方位AI課程助教，整理於2020&#x2F;06&#x2F;21報告Semantic Segementation與R-CNN的內容。包含：  Overview R-CNN Family Mask R-CNN Mask Scroing R-CNN MNIST of Semantic Segmentation  OverviewWhat is semantic segmentatio">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image8.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image9.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image16.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image10.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image40.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image14.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image4.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image7.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image15.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image13.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image3.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image11.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image18.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image1.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image17.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image5.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image12.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image28.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image20.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image26.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image22.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image23.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image25.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image19.gif">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image31.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image24.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image27.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image34.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image21.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image29.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image32.gif">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image33.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image37.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image35.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image30.gif">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image44.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image38.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image42.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image46.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image36.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image43.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image39.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image41.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image47.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image53.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image45.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image48.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image58.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image57.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image56.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image49.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image54.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image59.gif">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image62.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image67.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image61.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image63.png">
+<meta property="og:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image64.png">
+<meta property="article:published_time" content="2020-06-22T02:58:15.000Z">
+<meta property="article:modified_time" content="2020-06-23T08:04:26.650Z">
+<meta property="article:author" content="Fan">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/06/22/SSPre-20200622/image8.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/06/22/SSPre-20200622/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Semantic Segmentation Presentation (2020/06/21) | Fan Programming Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Fan Programming Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/06/22/SSPre-20200622/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Fan">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Fan Programming Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Semantic Segmentation Presentation (2020/06/21)
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-06-22 10:58:15" itemprop="dateCreated datePublished" datetime="2020-06-22T10:58:15+08:00">2020-06-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-06-23 16:04:26" itemprop="dateModified" datetime="2020-06-23T16:04:26+08:00">2020-06-23</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>這篇文章為個人擔任<a href="https://www.facebook.com/marcel.wang" target="_blank" rel="noopener">Marcel</a>開辦的<a href="http://hemingwang.blogspot.com/2020/01/all-round-ai-lectures.html" target="_blank" rel="noopener">全方位AI課程</a>助教，整理於2020/06/21報告Semantic Segementation與R-CNN的內容。包含：</p>
+<ul>
+<li>Overview</li>
+<li>R-CNN Family</li>
+<li>Mask R-CNN</li>
+<li>Mask Scroing R-CNN</li>
+<li>MNIST of Semantic Segmentation</li>
+</ul>
+<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><h2 id="What-is-semantic-segmentation"><a href="#What-is-semantic-segmentation" class="headerlink" title="What is semantic segmentation ?"></a>What is semantic segmentation ?</h2><img src="/2020/06/22/SSPre-20200622/image8.png" class="" title="Semantic Segmentation (image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1912.10230.pdf)">
+
+<a id="more"></a>
+
+<h2 id="Large-scale-2D-image-sets"><a href="#Large-scale-2D-image-sets" class="headerlink" title="Large-scale 2D image sets"></a>Large-scale 2D image sets</h2><ol>
+<li>General Purpose Semantic Segmentation Image Sets<img src="/2020/06/22/SSPre-20200622/image9.png" class="" title="GPSS Image Sets (image source: https:&#x2F;&#x2F;www.researchgate.net&#x2F;figure&#x2F;Results-of-localization-on-PASCAL-VOC-dataset-17-Green-box-Estimated-Window-Red_fig3_318029536)"></li>
+<li>Urban Street Semantic Segmentation Image Sets<img src="/2020/06/22/SSPre-20200622/image16.png" class="" title="USSS Image Sets (image source: https:&#x2F;&#x2F;www.youtube.com&#x2F;watch?v&#x3D;1HJSMR6LW2g)"></li>
+<li>Others : medical imaging, statellite imagery, or infrared imagery<img src="/2020/06/22/SSPre-20200622/image10.png" class="" title="Others (image source: https:&#x2F;&#x2F;www.biorxiv.org&#x2F;content&#x2F;10.1101&#x2F;2020.03.14.992115v1.full)">
+
+</li>
+</ol>
+<h3 id="General-Purpose-Semantic-Segmentation-Image-Sets"><a href="#General-Purpose-Semantic-Segmentation-Image-Sets" class="headerlink" title="General Purpose Semantic Segmentation Image Sets"></a>General Purpose Semantic Segmentation Image Sets</h3><ul>
+<li>PASCAL Visual Object Classes (VOC)</li>
+<li>Common Objects in Context (COCO)</li>
+<li>ADE20K dataset</li>
+<li>Others : YouTube-Objects, SIFT-flow</li>
+</ul>
+<h4 id="PASCAL-Visual-Object-Classes-VOC"><a href="#PASCAL-Visual-Object-Classes-VOC" class="headerlink" title="PASCAL Visual Object Classes (VOC)"></a>PASCAL Visual Object Classes (VOC)</h4><ul>
+<li>semantic segmentation, classification, detection, action classification, and person layout tasks</li>
+<li>most popular</li>
+<li>20 foreground object classes and one background class</li>
+<li>extension image sets : PASCAL Context, PASCAL Parts, Semantic Parts (PASParts) image set, Semantic Boundaries Dataset (SBD)<img src="/2020/06/22/SSPre-20200622/image40.png" class="" title="VOC (image source: http:&#x2F;&#x2F;host.robots.ox.ac.uk&#x2F;pascal&#x2F;VOC&#x2F;voc2012&#x2F;index.html)">
+
+</li>
+</ul>
+<h4 id="Common-Objects-in-Context-COCO"><a href="#Common-Objects-in-Context-COCO" class="headerlink" title="Common Objects in Context (COCO)"></a>Common Objects in Context (COCO)</h4><ul>
+<li>200K labelled images</li>
+<li>1.5 million object instance</li>
+<li>80 object categories</li>
+<li>Very large-scale object detection, semantic segmentation, and captioning image set, including almost every possible types of scene.</li>
+<li>instance-level, pixel level semantic segmentation and panoptic segmeation<img src="/2020/06/22/SSPre-20200622/image14.png" class="" title="COCO (image source : http:&#x2F;&#x2F;cocodataset.org&#x2F;#panoptic-2020)">
+
+</li>
+</ul>
+<h4 id="ADE20K-dataset"><a href="#ADE20K-dataset" class="headerlink" title="ADE20K dataset"></a>ADE20K dataset</h4><ul>
+<li>more than 20K scene-centric images with object and object parts annotations</li>
+<li>varying resolutions</li>
+<li>150 semantic categories<img src="/2020/06/22/SSPre-20200622/image4.png" class="" title="ADE20K (image source: https:&#x2F;&#x2F;groups.csail.mit.edu&#x2F;vision&#x2F;datasets&#x2F;ADE20K&#x2F;)">
+
+</li>
+</ul>
+<h3 id="Urban-Street-Semantic-Segmentation-Image-Sets"><a href="#Urban-Street-Semantic-Segmentation-Image-Sets" class="headerlink" title="Urban Street Semantic Segmentation Image Sets"></a>Urban Street Semantic Segmentation Image Sets</h3><h4 id="Cityscapes"><a href="#Cityscapes" class="headerlink" title="Cityscapes"></a>Cityscapes</h4><ul>
+<li>largescale image set</li>
+<li>semantic understanding of urban street scenes</li>
+<li>high-resolution images from 50 different cities</li>
+<li>two quality levels : fine for 5000 images and course</li>
+<li>for 20000 images</li>
+<li>30 different class labels</li>
+<li>two challenges: pixel-level semantic segmentation,</li>
+<li>instance-level semantic segmentation<img src="/2020/06/22/SSPre-20200622/image7.png" class="" title="Cityscapes (image source: https:&#x2F;&#x2F;www.cityscapes-dataset.com&#x2F;examples&#x2F;)">
+
+</li>
+</ul>
+<h3 id="Others-CamVid-KITTI-and-SYNTHIA"><a href="#Others-CamVid-KITTI-and-SYNTHIA" class="headerlink" title="Others: CamVid, KITTI, and SYNTHIA"></a>Others: CamVid, KITTI, and SYNTHIA</h3><h2 id="Performance-Evaluation"><a href="#Performance-Evaluation" class="headerlink" title="Performance Evaluation"></a>Performance Evaluation</h2><ul>
+<li>Accuracy<ul>
+<li>ROC-AUC (Receiver-Operator Characteristic)</li>
+<li>Pixel Accuracy (Global Accuracy, PA (Pixel Accuracy))</li>
+<li>Intersection over Union (IoU)</li>
+<li>Precision-Recall Curve (PRC)-based metrics</li>
+</ul>
+</li>
+<li>Computational Complexity<ul>
+<li>Execution Time</li>
+<li>Memory Usage</li>
+</ul>
+</li>
+</ul>
+<h3 id="Pixel-Accuracy"><a href="#Pixel-Accuracy" class="headerlink" title="Pixel Accuracy"></a>Pixel Accuracy</h3><ul>
+<li>Calculate the ratio between the amount of properly classified pixels and their total number</li>
+<li>mPA (mean pixel accuracy) : computes the ratio of correct pixels on a per-class basis, class average accuracy<img src="/2020/06/22/SSPre-20200622/image15.png" class="" title="Pixel Accuracy (image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1912.10230.pdf)">
+
+</li>
+</ul>
+<h3 id="Average-Precision-AP"><a href="#Average-Precision-AP" class="headerlink" title="Average Precision (AP)"></a>Average Precision (AP)</h3><ul>
+<li>Recall(召回率) = TP/(TP+FN)</li>
+<li>正樣本當中，能夠預測多少正樣本的比例</li>
+<li>Precision(準確率) = TP/(TP+FP)</li>
+<li>所有預測為正樣本中，有多少為正樣本<img src="/2020/06/22/SSPre-20200622/image13.png" class="" title="Accuracy">
+<img src="/2020/06/22/SSPre-20200622/image3.png" class="" title="Precision">
+<img src="/2020/06/22/SSPre-20200622/image11.png" class="" title="Confusion matrix">
+<img src="/2020/06/22/SSPre-20200622/image18.png" class="" title="Confusion matrix 2">
+
+</li>
+</ul>
+<h3 id="Intersection-over-Union-IoU"><a href="#Intersection-over-Union-IoU" class="headerlink" title="Intersection over Union (IoU)"></a>Intersection over Union (IoU)</h3><ul>
+<li>Comparing the similarity and diversity of sample sets.<img src="/2020/06/22/SSPre-20200622/image1.png" class="" title="IoU (image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1912.10230.pdf)">
+<img src="/2020/06/22/SSPre-20200622/image17.png" class="">
+<img src="/2020/06/22/SSPre-20200622/image5.png" class="" title="IoU For Semantic Segmentation (image source: https:&#x2F;&#x2F;www.jeremyjordan.me&#x2F;evaluating-image-segmentation-models&#x2F;)">
+<img src="/2020/06/22/SSPre-20200622/image12.png" class="" title="IoU For Object Detection (image source: https:&#x2F;&#x2F;zhuanlan.zhihu.com&#x2F;p&#x2F;45217236)">
+
+</li>
+</ul>
+<h3 id="Mean-Intersection-over-Union-mIoU"><a href="#Mean-Intersection-over-Union-mIoU" class="headerlink" title="Mean Intersection over Union (mIoU)"></a>Mean Intersection over Union (mIoU)</h3><ul>
+<li>把所有類別加起來做平均<img src="/2020/06/22/SSPre-20200622/image28.png" class="" title="Mean IoU">
+
+</li>
+</ul>
+<h3 id="Frequency-weighted-intersection-over-Union-FwIoU"><a href="#Frequency-weighted-intersection-over-Union-FwIoU" class="headerlink" title="Frequency-weighted intersection over Union (FwIoU)"></a>Frequency-weighted intersection over Union (FwIoU)</h3><ul>
+<li>tj (the total number of pixels labelled as class j)<img src="/2020/06/22/SSPre-20200622/image20.png" class="" title="Frequency IoU">
+
+</li>
+</ul>
+<h2 id="Approaches"><a href="#Approaches" class="headerlink" title="Approaches"></a>Approaches</h2><ul>
+<li>Before Fully Convolutional Networks (FCN)<ul>
+<li>Pre-Deep Learning Approaches</li>
+<li>Refinement Methods</li>
+<li>Early Deep Learning Approaches</li>
+</ul>
+</li>
+<li>Fully Convolutional Networks (FCN)</li>
+<li>Post-FCN Approaches</li>
+</ul>
+<h3 id="Pre-Deep-Learning-Approaches"><a href="#Pre-Deep-Learning-Approaches" class="headerlink" title="Pre-Deep Learning Approaches"></a>Pre-Deep Learning Approaches</h3><ul>
+<li>(MRF, CRF, forest-based)[<a href="https://blog.csdn.net/junchengberry/article/details/81182341]" target="_blank" rel="noopener">https://blog.csdn.net/junchengberry/article/details/81182341]</a></li>
+</ul>
+<h3 id="Fully-Convolutional-Networks-FCNs"><a href="#Fully-Convolutional-Networks-FCNs" class="headerlink" title="Fully Convolutional Networks (FCNs)"></a>Fully Convolutional Networks (FCNs)</h3><h4 id="Key-Points"><a href="#Key-Points" class="headerlink" title="Key Points"></a>Key Points</h4><ul>
+<li>Dismantle fully connected layers from deep CNNs</li>
+<li>Deconvolutional layers</li>
+<li>Skip Architecture for DCNNs</li>
+<li>Adapte classification networks such as AlexNet, VGG, and GoogLeNet into fully convolutional networks</li>
+<li>FCN-32s, FCN16s, FCN8s, tranfer-learnt using the VGG architecture<img src="/2020/06/22/SSPre-20200622/image26.png" class="" title="CNN">
+<img src="/2020/06/22/SSPre-20200622/image22.png" class="" title="FCN">
+
+</li>
+</ul>
+<h4 id="Advanteges-of-Fully-Convolutional-Layers"><a href="#Advanteges-of-Fully-Convolutional-Layers" class="headerlink" title="Advanteges of Fully Convolutional Layers"></a>Advanteges of Fully Convolutional Layers</h4><ol>
+<li>Inference per image was seen to be considerably faster</li>
+<li>The structure allowed segmentation maps to be generated for images of any resolution</li>
+</ol>
+<h4 id="Upsampling"><a href="#Upsampling" class="headerlink" title="Upsampling"></a>Upsampling</h4><p>upsample coarse deep convolutional layer outputs to dense pixels of any desired resolution</p>
+<img src="/2020/06/22/SSPre-20200622/image23.png" class="" title="Upsampling-1">
+<img src="/2020/06/22/SSPre-20200622/image25.png" class="" title="Upsampling-2">
+
+<h4 id="Upsampling-via-Deconvolutional-Layers"><a href="#Upsampling-via-Deconvolutional-Layers" class="headerlink" title="Upsampling via Deconvolutional Layers"></a>Upsampling via Deconvolutional Layers</h4><img src="/2020/06/22/SSPre-20200622/image19.gif" class="" title="Deconvolution">
+
+<h4 id="FCN-32s"><a href="#FCN-32s" class="headerlink" title="FCN-32s"></a>FCN-32s</h4><ul>
+<li>直接放大回原圖，預測效果不好太粗糙<img src="/2020/06/22/SSPre-20200622/image31.png" class="" title="FCN-32N">
+
+</li>
+</ul>
+<h4 id="Skip-Architecture"><a href="#Skip-Architecture" class="headerlink" title="Skip Architecture"></a>Skip Architecture</h4><ul>
+<li>provide links between nonadjacent layers in DCNNs</li>
+<li>Simply by summing or concatenating outputs of unconnected layers, these connections enable information to flow, (localised information)</li>
+<li>eventually evolved into the encode-decoder structures for semantic segmetation<img src="/2020/06/22/SSPre-20200622/image24.png" class="" title="Skip Architecture">
+
+</li>
+</ul>
+<h4 id="FCN-32s-FCN-16s-FCN-8s-Comparasion"><a href="#FCN-32s-FCN-16s-FCN-8s-Comparasion" class="headerlink" title="FCN-32s, FCN-16s, FCN-8s Comparasion"></a>FCN-32s, FCN-16s, FCN-8s Comparasion</h4><img src="/2020/06/22/SSPre-20200622/image27.png" class="" title="FCN-32s, FCN-16s, FCN-8s Comparasion">
+
+<h4 id="FCNs-Architecture-Details"><a href="#FCNs-Architecture-Details" class="headerlink" title="FCNs Architecture Details"></a>FCNs Architecture Details</h4><img src="/2020/06/22/SSPre-20200622/image34.png" class="" title="FCNs Architecture Details">
+
+<h4 id="FCNs-drawback"><a href="#FCNs-drawback" class="headerlink" title="FCNs drawback"></a>FCNs drawback</h4><ol>
+<li>Inefficient loss of label localisation within the feature hierachy (created by pooling)</li>
+<li>Inability to process global context knowledge (due to fully convolutional nature)</li>
+<li>The lack of a mechanism for muticale processing</li>
+</ol>
+<h2 id="Techniques-for-Fine-grained-Localisation"><a href="#Techniques-for-Fine-grained-Localisation" class="headerlink" title="Techniques for Fine-grained Localisation"></a>Techniques for Fine-grained Localisation</h2><ul>
+<li>Encoder-Decoder Architecture</li>
+<li>Spatial Pyramid Pooling</li>
+<li>Feature Concatenation</li>
+<li>Dilated Convolution</li>
+<li>Conditional Random Fields</li>
+<li>Recurrent Approaches</li>
+</ul>
+<h3 id="Encoder-Decoder-Architecture-ED"><a href="#Encoder-Decoder-Architecture-ED" class="headerlink" title="Encoder-Decoder Architecture (ED)"></a>Encoder-Decoder Architecture (ED)</h3><ul>
+<li>U-nets, Seg-Net</li>
+<li>Encoder gradually reduces the spatial dimension with pooling layers, whilst decoder gradually recovers the object details and spatial dimension.</li>
+<li>Each feature map of the decoder part only directly receives the information from the feature map at the same level of the encoder part using skip connections.</li>
+</ul>
+<h4 id="U-Net"><a href="#U-Net" class="headerlink" title="U-Net"></a>U-Net</h4><ul>
+<li>完全對稱</li>
+<li>FCN用summation而U-Net用concatenation<img src="/2020/06/22/SSPre-20200622/image21.png" class="" title="U-Net">
+
+</li>
+</ul>
+<h4 id="Spatial-Pyramid-Pooling"><a href="#Spatial-Pyramid-Pooling" class="headerlink" title="Spatial Pyramid Pooling"></a>Spatial Pyramid Pooling</h4><ul>
+<li>SPPNet<ul>
+<li>Allowed inputs of different sizes to be fed into CNNs<img src="/2020/06/22/SSPre-20200622/image29.png" class="" title="SPPNet">
+
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="Feature-Concatenation"><a href="#Feature-Concatenation" class="headerlink" title="Feature Concatenation"></a>Feature Concatenation</h4><ul>
+<li>DeepMask</li>
+<li>SharpMask</li>
+<li>ParseNet</li>
+<li><a href="https://towardsdatascience.com/review-deepmask-instance-segmentation-30327a072339" target="_blank" rel="noopener">reading</a></li>
+</ul>
+<h4 id="Dilated-Convolution"><a href="#Dilated-Convolution" class="headerlink" title="Dilated Convolution"></a>Dilated Convolution</h4><ol>
+<li>減少參數</li>
+<li>帶正規性質</li>
+<li>可解救位置丟失的問題</li>
+<li><a href="https://www.zhihu.com/question/54149221" target="_blank" rel="noopener">reading</a><img src="/2020/06/22/SSPre-20200622/image32.gif" class="" title="Dilated Convolution">
+
+
+</li>
+</ol>
+<h2 id="Object-Detection-based-Methods"><a href="#Object-Detection-based-Methods" class="headerlink" title="Object Detection-based Methods"></a>Object Detection-based Methods</h2><ul>
+<li>R-CNN, Fast R-CNN, Faster R-CNN, Mask R-CNN, MS R-CNN</li>
+<li>RCNNs, YOLO, SSD</li>
+</ul>
+<h1 id="R-CNN-Family"><a href="#R-CNN-Family" class="headerlink" title="R-CNN Family"></a>R-CNN Family</h1><h2 id="Object-Detection"><a href="#Object-Detection" class="headerlink" title="Object Detection"></a>Object Detection</h2><ul>
+<li>Mainly be categorized into two types<img src="/2020/06/22/SSPre-20200622/image33.png" class="" title="Object Detection Development (image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1807.05511.pdf)">
+
+</li>
+</ul>
+<h2 id="R-CNN"><a href="#R-CNN" class="headerlink" title="R-CNN"></a>R-CNN</h2><ul>
+<li>R-CNN (<a href="https://arxiv.org/abs/1311.2524" target="_blank" rel="noopener">Girshick et al., 2014</a>)</li>
+<li>Two steps<ul>
+<li>Using selective search to find a manageable number of bounding-box object region candidates (“region of interest” or “ROI”) (1K~2K)</li>
+<li>Extracts CNN features from each region independently for classification<img src="/2020/06/22/SSPre-20200622/image37.png" class="" title="R-CNN (Image source: https:&#x2F;&#x2F;arxiv.org&#x2F;abs&#x2F;1311.2524)">
+
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="Fast-R-CNN"><a href="#Fast-R-CNN" class="headerlink" title="Fast R-CNN"></a>Fast R-CNN</h2><ul>
+<li>將特徵器、分類器與回歸器合在一起，使用CNN實現，過程中不用將每個階段結果保存於硬碟，加快訓練。</li>
+<li>對整張圖進行特徵提取，在跟去候選區域在原圖中的位置挑選特徵。使用ROI層解決特徵數目不同的問題。</li>
+<li>參考SPPNet <a href="https://zhuanlan.zhihu.com/p/24774302" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/24774302</a> 與ROI出現相關</li>
+<li>使用softmax取代SVM</li>
+<li>回歸器求出(x, y, w,h)四個分量，使用smooth-L1</li>
+<li>剩下Proposal階段沒使用CNN，Proposal階段結果還是須先保存到硬碟，在輸入到後面的階段，如何做到真正的end-to-end？</li>
+<li>Reference<ul>
+<li><a href="https://imlogm.github.io/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/rcnn/" target="_blank" rel="noopener">https://imlogm.github.io/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/rcnn/</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/24780395" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/24780395</a><img src="/2020/06/22/SSPre-20200622/image35.png" class="" title="Fast R-CNN">
+
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="RoI-Pooling"><a href="#RoI-Pooling" class="headerlink" title="RoI Pooling"></a>RoI Pooling</h3><ul>
+<li>Type of max pooling</li>
+<li>Input: (N, W/16, H/16, C)</li>
+<li>Output: (num_rois, expected_H, expected_W, C)<img src="/2020/06/22/SSPre-20200622/image30.gif" class="" title="RoI Pooling (Image source: https:&#x2F;&#x2F;deepsense.ai&#x2F;region-of-interest-pooling-explained&#x2F;)">
+<img src="/2020/06/22/SSPre-20200622/image44.png" class="" title="RoI Pooling 2 (Image source: http:&#x2F;&#x2F;cs231n.stanford.edu&#x2F;slides&#x2F;2016&#x2F;winter1516_lecture8.pdf)">
+<img src="/2020/06/22/SSPre-20200622/image38.png" class="" title="RoI Pooling 3 (Image source: https:&#x2F;&#x2F;deepsense.ai&#x2F;region-of-interest-pooling-explained&#x2F;)">
+
+</li>
+</ul>
+<h2 id="Faster-R-CNN"><a href="#Faster-R-CNN" class="headerlink" title="Faster R-CNN"></a>Faster R-CNN</h2><ul>
+<li>解決Fast R-CNN仍使用selective search尋找ROI(region of interest)造成效能不佳的問題</li>
+<li>使用RPN(Region Proposal Network)提取ROI</li>
+<li>使用Anchor機制</li>
+<li>將ROI結果在送入後端網路進行Object Detection<img src="/2020/06/22/SSPre-20200622/image42.png" class="" title="Object Detection Comparasion">
+
+</li>
+</ul>
+<h3 id="Faster-R-CNN-Network"><a href="#Faster-R-CNN-Network" class="headerlink" title="Faster R-CNN Network"></a>Faster R-CNN Network</h3><img src="/2020/06/22/SSPre-20200622/image46.png" class="" title="Faster R-CNN Network">
+<img src="/2020/06/22/SSPre-20200622/image36.png" class="" title="Faster R-CNN Network 2">
+<ul>
+<li>Faster R-CNN論文中使用ZFNet架構為第一個特徵萃取的網路，而上方這張圖為使用VGGNet-16。</li>
+</ul>
+<h3 id="RPN"><a href="#RPN" class="headerlink" title="RPN"></a>RPN</h3><ul>
+<li>分類部分，針對每個anchor連接softmax，分成前景與背景，前景標籤為1，背景標籤為0，總共2k個</li>
+<li>回歸部分，針對每個anchor預測四個座標(x, y, w, h)，總共4k個<img src="/2020/06/22/SSPre-20200622/image43.png" class="" title="RPN 1">
+<img src="/2020/06/22/SSPre-20200622/image39.png" class="" title="RPN 2">
+
+</li>
+</ul>
+<h3 id="IoU"><a href="#IoU" class="headerlink" title="IoU"></a>IoU</h3><img src="/2020/06/22/SSPre-20200622/image41.png" class="" title="IoU">
+
+<h3 id="Anchor"><a href="#Anchor" class="headerlink" title="Anchor"></a>Anchor</h3><img src="/2020/06/22/SSPre-20200622/image47.png" class="" title="Anchor 1">
+<img src="/2020/06/22/SSPre-20200622/image53.png" class="" title="Anchor 2">
+
+<h3 id="RPN-損失函數"><a href="#RPN-損失函數" class="headerlink" title="RPN 損失函數"></a>RPN 損失函數</h3><ul>
+<li>i表示地i個anchor</li>
+<li>每個正樣本只能對應一個ground truth，最大或大於0.7<img src="/2020/06/22/SSPre-20200622/image45.png" class="" title="RPN Loss Formula">
+<img src="/2020/06/22/SSPre-20200622/image48.png" class="" title="RPN Loss Details">
+<img src="/2020/06/22/SSPre-20200622/image58.png" class="" title="IoU">
+
+</li>
+</ul>
+<h1 id="Mask-R-CNN"><a href="#Mask-R-CNN" class="headerlink" title="Mask R-CNN"></a>Mask R-CNN</h1><h2 id="Instance-Segmentation"><a href="#Instance-Segmentation" class="headerlink" title="Instance Segmentation"></a>Instance Segmentation</h2><ul>
+<li>object detection + semantic segmentation</li>
+</ul>
+<h2 id="Overview-1"><a href="#Overview-1" class="headerlink" title="Overview"></a>Overview</h2><ul>
+<li>Extends faster R-CNN to pixel-level image segmetation</li>
+<li>Decouple the classification and the pixel-level mask predication tasks</li>
+<li>Added a third branch for predicting an object mask</li>
+<li>Mask branch is a small fully convolutional network (FCN)<img src="/2020/06/22/SSPre-20200622/image57.png" class="" title="Mask R-CNN Overview (image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1703.06870.pdf)">
+
+</li>
+</ul>
+<h2 id="Architecture"><a href="#Architecture" class="headerlink" title="Architecture"></a>Architecture</h2><img src="/2020/06/22/SSPre-20200622/image56.png" class="" title="Mask R-CNN Architecture">
+
+<h2 id="Misalignment"><a href="#Misalignment" class="headerlink" title="Misalignment"></a>Misalignment</h2><ul>
+<li>Because pixel-level requires much more fine-grained alignment than bounding boxes, mask R-CNN improves RoI pooling layer (named “RoIAlign layer”).</li>
+<li>Improve accuracy from 10% to 50%.<img src="/2020/06/22/SSPre-20200622/image49.png" class="" title="Misalignment">
+<img src="/2020/06/22/SSPre-20200622/image54.png" class="" title="Misalignment 2">
+
+</li>
+</ul>
+<h2 id="RoIAlign-layer"><a href="#RoIAlign-layer" class="headerlink" title="RoIAlign layer"></a>RoIAlign layer</h2><img src="/2020/06/22/SSPre-20200622/image59.gif" class="" title="RoIAlign">
+
+<h2 id="Loss-Function"><a href="#Loss-Function" class="headerlink" title="Loss Function"></a>Loss Function</h2><ul>
+<li>前兩項與Faster R-CNN，主要增加第三個部分</li>
+<li>mask分支產生針對每個RoI與類別產生m x m的結果，並且總共有K個class，因此輸出的大小為K x m^2，</li>
+<li>mask的損失函數定義為average binary cross-entropy<img src="/2020/06/22/SSPre-20200622/image62.png" class="" title="Loss Function 1">
+
+
+</li>
+</ul>
+<h1 id="Summary-of-Models-in-the-R-CNN-family"><a href="#Summary-of-Models-in-the-R-CNN-family" class="headerlink" title="Summary of Models in the R-CNN family"></a>Summary of Models in the R-CNN family</h1><img src="/2020/06/22/SSPre-20200622/image67.png" class="" title="R-CNN Family Comparasion">
+
+<h1 id="MaskScoring-R-CNN"><a href="#MaskScoring-R-CNN" class="headerlink" title="MaskScoring R-CNN"></a>MaskScoring R-CNN</h1><ul>
+<li>MS R-CNN = Mask R-CNN + MaskIoU head module</li>
+<li>這張圖可以看到對於雜亂的圖，由於Mask R-CNN是使用非類分支的輸出當作分數，所以雜亂圖分數還是很高Mask Scoring R-CNN 為了解決這個問題，提出新的方法<img src="/2020/06/22/SSPre-20200622/image61.png" class="" title="MaskScoring R-CNN">
+
+</li>
+</ul>
+<h2 id="Architecture-1"><a href="#Architecture-1" class="headerlink" title="Architecture"></a>Architecture</h2><img src="/2020/06/22/SSPre-20200622/image63.png" class="" title="MaskScoring R-CNN Architecture">
+
+<h1 id="MNIST-of-Semantic-Segmentation"><a href="#MNIST-of-Semantic-Segmentation" class="headerlink" title="MNIST of Semantic Segmentation"></a>MNIST of Semantic Segmentation</h1><ul>
+<li><a href="https://medium.com/100-shades-of-machine-learning/https-medium-com-100-shades-of-machine-learning-rediscovering-semantic-segmentation-part1-83e1462e0805" target="_blank" rel="noopener">Rediscovering Semantic Segmentation</a></li>
+<li><a href="https://www.kaggle.com/zhoulingyan0228/m2nist-segmentation-u-net" target="_blank" rel="noopener">M2NIST Segmentation / U-net</a><img src="/2020/06/22/SSPre-20200622/image64.png" class="" title="Result">
+
+</li>
+</ul>
+<h1 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h1><ul>
+<li><a href="https://arxiv.org/pdf/1912.10230.pdf" target="_blank" rel="noopener">A Survey on Deep Learning-based Architectures for Semantic Segmentation on 2D images</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/05/28/GoogLeNet/" rel="prev" title="GoogLeNet">
+      <i class="fa fa-chevron-left"></i> GoogLeNet
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/06/22/Select-Kernel-Networks/" rel="next" title="Select Kernel Networks">
+      Select Kernel Networks <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Overview"><span class="nav-number">1.</span> <span class="nav-text">Overview</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#What-is-semantic-segmentation"><span class="nav-number">1.1.</span> <span class="nav-text">What is semantic segmentation ?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Large-scale-2D-image-sets"><span class="nav-number">1.2.</span> <span class="nav-text">Large-scale 2D image sets</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#General-Purpose-Semantic-Segmentation-Image-Sets"><span class="nav-number">1.2.1.</span> <span class="nav-text">General Purpose Semantic Segmentation Image Sets</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#PASCAL-Visual-Object-Classes-VOC"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">PASCAL Visual Object Classes (VOC)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Common-Objects-in-Context-COCO"><span class="nav-number">1.2.1.2.</span> <span class="nav-text">Common Objects in Context (COCO)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ADE20K-dataset"><span class="nav-number">1.2.1.3.</span> <span class="nav-text">ADE20K dataset</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Urban-Street-Semantic-Segmentation-Image-Sets"><span class="nav-number">1.2.2.</span> <span class="nav-text">Urban Street Semantic Segmentation Image Sets</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Cityscapes"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">Cityscapes</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Others-CamVid-KITTI-and-SYNTHIA"><span class="nav-number">1.2.3.</span> <span class="nav-text">Others: CamVid, KITTI, and SYNTHIA</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Performance-Evaluation"><span class="nav-number">1.3.</span> <span class="nav-text">Performance Evaluation</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Pixel-Accuracy"><span class="nav-number">1.3.1.</span> <span class="nav-text">Pixel Accuracy</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Average-Precision-AP"><span class="nav-number">1.3.2.</span> <span class="nav-text">Average Precision (AP)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Intersection-over-Union-IoU"><span class="nav-number">1.3.3.</span> <span class="nav-text">Intersection over Union (IoU)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Mean-Intersection-over-Union-mIoU"><span class="nav-number">1.3.4.</span> <span class="nav-text">Mean Intersection over Union (mIoU)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Frequency-weighted-intersection-over-Union-FwIoU"><span class="nav-number">1.3.5.</span> <span class="nav-text">Frequency-weighted intersection over Union (FwIoU)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Approaches"><span class="nav-number">1.4.</span> <span class="nav-text">Approaches</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Pre-Deep-Learning-Approaches"><span class="nav-number">1.4.1.</span> <span class="nav-text">Pre-Deep Learning Approaches</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Fully-Convolutional-Networks-FCNs"><span class="nav-number">1.4.2.</span> <span class="nav-text">Fully Convolutional Networks (FCNs)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Key-Points"><span class="nav-number">1.4.2.1.</span> <span class="nav-text">Key Points</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Advanteges-of-Fully-Convolutional-Layers"><span class="nav-number">1.4.2.2.</span> <span class="nav-text">Advanteges of Fully Convolutional Layers</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Upsampling"><span class="nav-number">1.4.2.3.</span> <span class="nav-text">Upsampling</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Upsampling-via-Deconvolutional-Layers"><span class="nav-number">1.4.2.4.</span> <span class="nav-text">Upsampling via Deconvolutional Layers</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#FCN-32s"><span class="nav-number">1.4.2.5.</span> <span class="nav-text">FCN-32s</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Skip-Architecture"><span class="nav-number">1.4.2.6.</span> <span class="nav-text">Skip Architecture</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#FCN-32s-FCN-16s-FCN-8s-Comparasion"><span class="nav-number">1.4.2.7.</span> <span class="nav-text">FCN-32s, FCN-16s, FCN-8s Comparasion</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#FCNs-Architecture-Details"><span class="nav-number">1.4.2.8.</span> <span class="nav-text">FCNs Architecture Details</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#FCNs-drawback"><span class="nav-number">1.4.2.9.</span> <span class="nav-text">FCNs drawback</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Techniques-for-Fine-grained-Localisation"><span class="nav-number">1.5.</span> <span class="nav-text">Techniques for Fine-grained Localisation</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Encoder-Decoder-Architecture-ED"><span class="nav-number">1.5.1.</span> <span class="nav-text">Encoder-Decoder Architecture (ED)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#U-Net"><span class="nav-number">1.5.1.1.</span> <span class="nav-text">U-Net</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Spatial-Pyramid-Pooling"><span class="nav-number">1.5.1.2.</span> <span class="nav-text">Spatial Pyramid Pooling</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Feature-Concatenation"><span class="nav-number">1.5.1.3.</span> <span class="nav-text">Feature Concatenation</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Dilated-Convolution"><span class="nav-number">1.5.1.4.</span> <span class="nav-text">Dilated Convolution</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Object-Detection-based-Methods"><span class="nav-number">1.6.</span> <span class="nav-text">Object Detection-based Methods</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#R-CNN-Family"><span class="nav-number">2.</span> <span class="nav-text">R-CNN Family</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Object-Detection"><span class="nav-number">2.1.</span> <span class="nav-text">Object Detection</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#R-CNN"><span class="nav-number">2.2.</span> <span class="nav-text">R-CNN</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Fast-R-CNN"><span class="nav-number">2.3.</span> <span class="nav-text">Fast R-CNN</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#RoI-Pooling"><span class="nav-number">2.3.1.</span> <span class="nav-text">RoI Pooling</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Faster-R-CNN"><span class="nav-number">2.4.</span> <span class="nav-text">Faster R-CNN</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Faster-R-CNN-Network"><span class="nav-number">2.4.1.</span> <span class="nav-text">Faster R-CNN Network</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RPN"><span class="nav-number">2.4.2.</span> <span class="nav-text">RPN</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IoU"><span class="nav-number">2.4.3.</span> <span class="nav-text">IoU</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Anchor"><span class="nav-number">2.4.4.</span> <span class="nav-text">Anchor</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RPN-損失函數"><span class="nav-number">2.4.5.</span> <span class="nav-text">RPN 損失函數</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Mask-R-CNN"><span class="nav-number">3.</span> <span class="nav-text">Mask R-CNN</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Instance-Segmentation"><span class="nav-number">3.1.</span> <span class="nav-text">Instance Segmentation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Overview-1"><span class="nav-number">3.2.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Architecture"><span class="nav-number">3.3.</span> <span class="nav-text">Architecture</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Misalignment"><span class="nav-number">3.4.</span> <span class="nav-text">Misalignment</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RoIAlign-layer"><span class="nav-number">3.5.</span> <span class="nav-text">RoIAlign layer</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Loss-Function"><span class="nav-number">3.6.</span> <span class="nav-text">Loss Function</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Summary-of-Models-in-the-R-CNN-family"><span class="nav-number">4.</span> <span class="nav-text">Summary of Models in the R-CNN family</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#MaskScoring-R-CNN"><span class="nav-number">5.</span> <span class="nav-text">MaskScoring R-CNN</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Architecture-1"><span class="nav-number">5.1.</span> <span class="nav-text">Architecture</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#MNIST-of-Semantic-Segmentation"><span class="nav-number">6.</span> <span class="nav-text">MNIST of Semantic Segmentation</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Reference"><span class="nav-number">7.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Fan</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/chensheep" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;chensheep" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:chensheep1005@gmail.com" title="E-Mail → mailto:chensheep1005@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Fan</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  <script color='0,0,255' opacity='0.5' zIndex='-1' count='99' src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
