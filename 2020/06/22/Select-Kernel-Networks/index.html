@@ -20,17 +20,18 @@
     var CONFIG = {"hostname":"chensheep.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="論文請參考 arXiv:1903.06586 。 介紹Select Kernel Networks（SKNets）於2019提出，為ResNet後在CNN上的改進。 主要提出解決過去CNN網路Receptive Field都是固定大小，但實際上的資料集，一張圖中目標物件的大小不一定是一樣的，所以這篇論文提出一個可以動態選擇使用哪種Receptive Field有較好預測結果的方法。">
+  <meta name="description" content="論文請參考 arXiv:1903.06586 。 介紹Select Kernel Networks（SKNets）於2019提出，為 ResNet 後再 CNN 上的改進。 過去 CNN 網路 Receptive Field 都是固定大小，但資料集圖中目標物件的大小是會不同的，會無法有效的抽取不同大小的特徵。 因此論文提出一個可以動態選擇 Receptive Field 大小的方法，獲得較好的">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Select Kernel Networks">
 <meta property="og:url" content="https://chensheep.github.io/2020/06/22/Select-Kernel-Networks/index.html">
 <meta property="og:site_name" content="Fan Programming Blog">
-<meta property="og:description" content="論文請參考 arXiv:1903.06586 。 介紹Select Kernel Networks（SKNets）於2019提出，為ResNet後在CNN上的改進。 主要提出解決過去CNN網路Receptive Field都是固定大小，但實際上的資料集，一張圖中目標物件的大小不一定是一樣的，所以這篇論文提出一個可以動態選擇使用哪種Receptive Field有較好預測結果的方法。">
+<meta property="og:description" content="論文請參考 arXiv:1903.06586 。 介紹Select Kernel Networks（SKNets）於2019提出，為 ResNet 後再 CNN 上的改進。 過去 CNN 網路 Receptive Field 都是固定大小，但資料集圖中目標物件的大小是會不同的，會無法有效的抽取不同大小的特徵。 因此論文提出一個可以動態選擇 Receptive Field 大小的方法，獲得較好的">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://chensheep.github.io/2020/06/22/Select-Kernel-Networks/skunit.png">
 <meta property="og:image" content="https://chensheep.github.io/2020/06/22/Select-Kernel-Networks/sknet.png">
+<meta property="og:image" content="https://chensheep.github.io/2020/06/22/Select-Kernel-Networks/exper.png">
 <meta property="article:published_time" content="2020-06-22T05:42:47.000Z">
-<meta property="article:modified_time" content="2020-06-23T08:04:26.649Z">
+<meta property="article:modified_time" content="2020-06-30T07:04:22.138Z">
 <meta property="article:author" content="Fan">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://chensheep.github.io/2020/06/22/Select-Kernel-Networks/skunit.png">
@@ -183,7 +184,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-06-23 16:04:26" itemprop="dateModified" datetime="2020-06-23T16:04:26+08:00">2020-06-23</time>
+                <time title="Modified: 2020-06-30 15:04:22" itemprop="dateModified" datetime="2020-06-30T15:04:22+08:00">2020-06-30</time>
               </span>
 
           
@@ -221,28 +222,40 @@
         <img src="/2020/06/22/Select-Kernel-Networks/skunit.png" class="" title="Fig.1 skunit image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1903.06586.pdf">
 
 <p>論文請參考 <a href="https://arxiv.org/abs/1903.06586" target="_blank" rel="noopener">arXiv:1903.06586</a> 。</p>
-<h1 id="介紹"><a href="#介紹" class="headerlink" title="介紹"></a>介紹</h1><p>Select Kernel Networks（SKNets）於2019提出，為ResNet後在CNN上的改進。</p>
-<p>主要提出解決過去CNN網路Receptive Field都是固定大小，但實際上的資料集，一張圖中目標物件的大小不一定是一樣的，所以這篇論文提出一個可以動態選擇使用哪種Receptive Field有較好預測結果的方法。</p>
+<h1 id="介紹"><a href="#介紹" class="headerlink" title="介紹"></a>介紹</h1><p>Select Kernel Networks（SKNets）於2019提出，為 ResNet 後再 CNN 上的改進。</p>
+<p>過去 CNN 網路 Receptive Field 都是固定大小，但資料集圖中目標物件的大小是會不同的，會無法有效的抽取不同大小的特徵。</p>
+<p>因此論文提出一個可以動態選擇 Receptive Field 大小的方法，獲得較好的預測結果。</p>
 <a id="more"></a>
 
-<p>Selective Kernel (SK) unit在這篇論文中被提出，SK unit使用多個分支，分別為不同的卷積核大小，最後一不同的權重將所有分支合在一起，非常類似SENet的做法，只是SENet是對不同的通道去加權。</p>
-<p>最後將Selective Kernel (SK) unit堆疊產生Selective Kernel Network (SKNets)。</p>
-<p>另外作者也做了實驗，將樣本圖片中的目標物件放大，可觀察到相對大的卷積核可獲取更有效的資訊。</p>
-<p>接著我們解釋幾個論文個重點</p>
-<h1 id="Selective-Kernel-SK-unit"><a href="#Selective-Kernel-SK-unit" class="headerlink" title="Selective Kernel (SK) unit"></a>Selective Kernel (SK) unit</h1><p>參考Fig.1。，SK unit主要由三部份組成，Split、Fuse與Select，在這張圖中Split部分為兩個分支，實際上可分成更多的分支，使用不同的卷積核。</p>
-<h2 id="Split"><a href="#Split" class="headerlink" title="Split"></a>Split</h2><p>在這裡使用兩個分支，其一為3x3卷積，另一個為5X5卷積，裡面都包含Batch Normalization與ReLU。<br>另外關於5X5卷積部分，不是使用一般的5X5卷積，為減少運算量，使用了空洞卷積(Dilated Convolution)，大小為3，dilation大小為2。<br>完成卷積後將兩個特徵圖element-wise相加，也保留這些特徵圖到Select使用。</p>
-<h2 id="Fuse"><a href="#Fuse" class="headerlink" title="Fuse"></a>Fuse</h2><p>這部分跟SENet做法類似，主要分成兩個步驟</p>
+<p>論文中提出 Selective Kernel (SK) unit 。</p>
+<p>SK unit 使用多個分支，分別具有不同大小的卷積核，再以不同的權重將分支合併，類似 SENet 的做法， SENet 是對不同的通道去加權。</p>
+<p>將 Selective Kernel (SK) unit 堆疊即為 Selective Kernel Network (SKNets)。</p>
+<p>作者藉由實驗，隨著放大樣本圖中的目標物件，相對大的卷積核也可獲取更有效的資訊。</p>
+<p>接著解釋幾個論文個重點</p>
+<h1 id="Selective-Kernel-SK-unit"><a href="#Selective-Kernel-SK-unit" class="headerlink" title="Selective Kernel (SK) unit"></a>Selective Kernel (SK) unit</h1><p>參考 Fig.1 。 SK unit 主要由三部份組成， Split 、 Fuse 與 Select 。</p>
+<p>Fig.1 中 Split 部分為兩個分支，實際上可分成更多的分支，使用不同大小的卷積核。</p>
+<h2 id="Split"><a href="#Split" class="headerlink" title="Split"></a>Split</h2><p>Fig.1 中使用兩個分支，一為 3 x 3 卷積，另一為 5 X 5 卷積，都包含 Batch Normalization 與 ReLU 。</p>
+<p>5 X 5 卷積部分，為減少運算量，使用了空洞卷積( Dilated Convolution )，卷積核大小為 3，dilation大小為 2。</p>
+<p>卷積後，將兩個特徵圖 element-wise 相加，並保留相加前的特徵圖到 Select 階段使用。</p>
+<h2 id="Fuse"><a href="#Fuse" class="headerlink" title="Fuse"></a>Fuse</h2><p>與 SENet 做法類似，分成兩個步驟</p>
 <ol>
 <li>Global Average Pooling</li>
-<li>Fully Connected Layer<br>第一步針對Ｕ每個channel做Global Average Pooling產程Ｓ，Ｓ維度為（C X 1)<br>第二步 W X S 其中Ｗ維度為（d X C）再經過ReLU產生Ｚ（d X 1），作者指出目的為減少運算量，我認為也有壓縮凸顯特徵的功用類似word embeding的概念。<br>d是如何決定的，這邊作者設定為max(C/r, L)最小為Ｌ=32，設定r去做實驗。</li>
+<li>Fully Connected Layer</li>
 </ol>
-<h2 id="Select"><a href="#Select" class="headerlink" title="Select"></a>Select</h2><p>獲得Ｚ之後，目的要算出對於在Split階段使用不同RF產生出來的特徵圖的權重。<br>在此我們有兩個分支，所以需產生出兩個向量分別為a、b，與Fuse中產生Z的方法類似，Ｗa X Z 與 Ｗb X Z分別產生兩個向量後，因為我們目的在於產生兩個特徵圖的權重，所以在針對每個通道去做softmax即可以獲得在每個通道上兩張特徵圖所佔的比例。<br>最後得到a、b向量後再分別與兩個分支的特徵圖做element-wise相乘，再將乘玩的兩個特徵圖element-wise相加。</p>
-<h1 id="SKNets"><a href="#SKNets" class="headerlink" title="SKNets"></a>SKNets</h1><img src="/2020/06/22/Select-Kernel-Networks/sknet.png" class="" title="Fig.2 sknet(image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1903.06586.pdf)">
+<p>第一步針對 Ｕ 每個 channel 做 Global Average Pooling 產程 Ｓ ， Ｓ 維度為（ C X 1 )。</p>
+<p>第二步 W X S 其中 Ｗ 維度為（ d X C ）再經過 ReLU 產生 Z（ d X 1 ）。</p>
+<p>作者指出 Fully Connected Layer 的目的為減少運算量，我認為也有壓縮以凸顯特徵的功用，類似 word embeding 的概念。</p>
+<p>d 的決定方法，作者設定 d 為 max(C/r, L) 。 Ｌ 為最小值，作者設定為32，接著改變 r 去做實驗。</p>
+<h2 id="Select"><a href="#Select" class="headerlink" title="Select"></a>Select</h2><p>獲得 Ｚ 之後，目的要算出 Split 階段不同 Receptive Field 產生出來的特徵圖的權重。</p>
+<p>Fig.1 中有兩個分支，需產生出兩個向量分別為 a 與 b ，與 Fuse 中產生 Z 的方法類似。</p>
+<p>Ｗa X Z 與 Ｗb X Z 運算產生兩個向量，接著產生兩個特徵圖的權重，針對每個通道去做 softmax ，獲得兩張特徵圖再每個通道上所佔的比例。</p>
+<p>最後得到 a 與 b 向量，分別與兩個分支的特徵圖做 element-wise 相乘，再將兩個特徵圖 element-wise 相加。</p>
+<h1 id="SKNets"><a href="#SKNets" class="headerlink" title="SKNets"></a>SKNets</h1><img src="/2020/06/22/Select-Kernel-Networks/sknet.png" class="" title="Fig.2 sknet ( image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1903.06586.pdf )">
 
-<p>參考Fig.2，圖中顯示SKNet-50的訓練參數並沒有明顯的增加。</p>
-<h1 id="實驗結果"><a href="#實驗結果" class="headerlink" title="實驗結果"></a>實驗結果</h1>
+<p>參考 Fig.2，圖中顯示 SKNet-50 的訓練參數並沒有明顯的增加。</p>
+<h1 id="實驗結果"><a href="#實驗結果" class="headerlink" title="實驗結果"></a>實驗結果</h1><img src="/2020/06/22/Select-Kernel-Networks/exper.png" class="" title="Fig.3 Experiments ( image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1903.06586.pdf )">
 
-<p>參考Fig.3。</p>
+<p>參考 Fig.3 ， SKNet-101 獲得較好的結果。</p>
 <h1 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h1><ul>
 <li><a href="https://arxiv.org/abs/1903.06586" target="_blank" rel="noopener">arXiv:1903.06586</a></li>
 </ul>
@@ -264,7 +277,10 @@
     <a href="/2020/06/22/SSPre-20200622/" rel="prev" title="Semantic Segmentation Presentation (2020/06/21)">
       <i class="fa fa-chevron-left"></i> Semantic Segmentation Presentation (2020/06/21)
     </a></div>
-      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2020/06/25/Deformable-Convolutional-Network/" rel="next" title="Deformable Convolutional Network">
+      Deformable Convolutional Network <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
       </footer>
     
@@ -344,7 +360,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-count">8</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
