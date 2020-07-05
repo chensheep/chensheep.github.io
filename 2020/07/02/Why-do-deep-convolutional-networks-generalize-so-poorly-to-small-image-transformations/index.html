@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"chensheep.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="論文請參考 arXiv:1805.12177 。 前言閱讀 STNet 時，論文提到 CNNs 缺乏 spatial invariant ， 但也有一些論文指出 CNNs 對於平移有一定的不變性，因此我進行了簡單的實驗。 使用 MNIST 簡單實驗中，對測試集資料進行微小平移會大幅降低模型預測的準確度，因此找了很多資料，發現這篇論文提供詳細的實驗方法。 論文中一開始提到 CNNs 一般被假定對">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Why do deep convolutional networks generalize so poorly to small image transformations?">
+<meta property="og:url" content="https://chensheep.github.io/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/index.html">
+<meta property="og:site_name" content="Fan Programming Blog">
+<meta property="og:description" content="論文請參考 arXiv:1805.12177 。 前言閱讀 STNet 時，論文提到 CNNs 缺乏 spatial invariant ， 但也有一些論文指出 CNNs 對於平移有一定的不變性，因此我進行了簡單的實驗。 使用 MNIST 簡單實驗中，對測試集資料進行微小平移會大幅降低模型預測的準確度，因此找了很多資料，發現這篇論文提供詳細的實驗方法。 論文中一開始提到 CNNs 一般被假定對">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://chensheep.github.io/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/image01.png">
+<meta property="og:image" content="https://chensheep.github.io/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/image02.png">
+<meta property="og:image" content="https://chensheep.github.io/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/image03.png">
+<meta property="og:image" content="https://chensheep.github.io/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/image04.png">
+<meta property="og:image" content="https://chensheep.github.io/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/image05.png">
+<meta property="og:image" content="https://chensheep.github.io/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/image06.png">
+<meta property="og:image" content="https://chensheep.github.io/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/image07.png">
+<meta property="og:image" content="https://chensheep.github.io/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/image08.png">
+<meta property="og:image" content="https://chensheep.github.io/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/image09.png">
+<meta property="og:image" content="https://chensheep.github.io/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/image10.png">
+<meta property="og:image" content="https://chensheep.github.io/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/image11.png">
+<meta property="og:image" content="https://chensheep.github.io/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/image12.png">
+<meta property="og:image" content="https://chensheep.github.io/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/image13.png">
+<meta property="article:published_time" content="2020-07-02T03:17:23.000Z">
+<meta property="article:modified_time" content="2020-07-05T04:18:39.016Z">
+<meta property="article:author" content="Fan">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://chensheep.github.io/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/image01.png">
+
+<link rel="canonical" href="https://chensheep.github.io/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Why do deep convolutional networks generalize so poorly to small image transformations? | Fan Programming Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Fan Programming Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://chensheep.github.io/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Fan">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Fan Programming Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Why do deep convolutional networks generalize so poorly to small image transformations?
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-07-02 11:17:23" itemprop="dateCreated datePublished" datetime="2020-07-02T11:17:23+08:00">2020-07-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-07-05 12:18:39" itemprop="dateModified" datetime="2020-07-05T12:18:39+08:00">2020-07-05</time>
+              </span>
+
+          
+            <span id="/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/" class="post-meta-item leancloud_visitors" data-flag-title="Why do deep convolutional networks generalize so poorly to small image transformations?" title="Views">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Disqus: </span>
+    
+    <a title="disqus" href="/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/#disqus_thread" itemprop="discussionUrl">
+      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <img src="/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/image01.png" class="" title="CNNs Spatial Invariance image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1805.12177.pdf">
+
+<p>論文請參考 <a href="https://arxiv.org/abs/1805.12177#:~:text=Why%20do%20deep%20convolutional%20networks%20generalize%20so%20poorly%20to%20small%20image%20transformations%3F,-Aharon%20Azulay%2C%20Yair&text=Taken%20together%2C%20our%20results%20indicate,preserving%20high%20accuracy%20remains%20unsolved." target="_blank" rel="noopener">arXiv:1805.12177</a> 。</p>
+<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>閱讀 STNet 時，論文提到 CNNs 缺乏 spatial invariant ， 但也有一些論文指出 CNNs 對於平移有一定的不變性，因此我進行了簡單的實驗。</p>
+<p>使用 MNIST 簡單實驗中，對測試集資料進行微小平移會大幅降低模型預測的準確度，因此找了很多資料，發現這篇論文提供詳細的實驗方法。</p>
+<p>論文中一開始提到 CNNs 一般被假定對於微小的圖片轉換有不變性，表示圖片中物體位置位移， CNNs 應能正確分類圖片。</p>
+<p>但已有許多證明微小的 translations 或 rescalings 都會劇烈影響網路預測的結果。</p>
+<p>這篇論文量化了這個現象，解釋為什麼卷積架構與 data augmenation 沒辦法達到預期的 invariance 效果。</p>
+<p>論文中分成幾個部分討論</p>
+<ul>
+<li>Introduction</li>
+<li>Quantifying the lack of invariance in modern CNNs</li>
+<li>Ignoring the Sampling Theorem</li>
+<li>Why don’t modern CNNs learn to be invariant from data augmentation?</li>
+</ul>
+<a id="more"></a>
+
+<h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><p>論文中先提到機器學習方法成功的關鍵是 inductive bias 。</p>
+<p>為確保神經網路保有平移不變性，所以</p>
+<ol>
+<li><p>CNNs 選擇使用 convolution 與 pooling 以增加對於圖片 translations, scalings, and other small deformations 的不變性</p>
+</li>
+<li><p>data augmentation : 訓練時透過 crop ， crop 的位置與大小是隨機選擇的，因此訓練過程中，crop 的圖片輸入會被網路視為不同的 shifts 與 rescalings。因此預期 CNNs 能判別當改變圖片的大小或平移，也能擷取到相同的特徵。</p>
+</li>
+</ol>
+<p>儘管兩種依 inductive bias 方法企圖增加 CNNs 對於平移不變性的能力，但 CNNs 對於微小的圖片轉換仍缺乏承受能力。</p>
+<p>Fig.2 中，使用 InceptionResnetV2 CNN 實驗，InceptionResnetV2 為全卷積神經網路，於訓練時使用 data augmentation。</p>
+<p>由上而下分別為 shift 、 scale 與 video，都可觀察到預測結果隨著變形大幅的改變。</p>
+<img src="/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/image02.png" class="" title="Fig.2 image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1805.12177.pdf">
+
+<h1 id="Quantifying-the-lack-of-invariance-in-modern-CNNs"><a href="#Quantifying-the-lack-of-invariance-in-modern-CNNs" class="headerlink" title="Quantifying the lack of invariance in modern CNNs"></a>Quantifying the lack of invariance in modern CNNs</h1><p>為了進行實驗，論文中量化不同的 CNNs 受到不同方式 rescaling 與 translating 的影響。</p>
+<p>論文中使用 6 種 CNNs 分別為</p>
+<ul>
+<li>Keras 的 VGG16, ResNet50, InceptionResNetV2</li>
+<li>Pytorch 的 VGG16, ResNet50, DenseNet121</li>
+</ul>
+<p>再隨機從 ImageNet 的測試集取出 1000 張圖，使用四種策略去測試，測試網路對於擾動（ perturbation ）的敏感度。</p>
+<p>Fig.3 顯示一個 pixel 的改變，對於人兩張圖的改變是難以察覺的，但網路的預測改變率能達 30 %。</p>
+<img src="/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/image03.png" class="" title="Fig.3 image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1805.12177.pdf">
+
+<p>作者再分別對 convolutional architecture 與 data augmentation 分析與解釋其不具有不變性的原因：</p>
+<ol>
+<li><p>convolutional architecture 忽略了 classical sampling theorem ， aliasing effects 使其失去了不變性。</p>
+</li>
+<li><p>data augmentation 僅能讓網路學習到對於與訓練階段相似圖片的不變性，訓練集圖片的分佈有高度的 bias ，不符合 bias 的圖片沒有良好的 invariance。</p>
+</li>
+</ol>
+<h1 id="Ignoring-the-Sampling-Theorem"><a href="#Ignoring-the-Sampling-Theorem" class="headerlink" title="Ignoring the Sampling Theorem"></a>Ignoring the Sampling Theorem</h1><p>論文提到 CNNs 普遍被認為有平移不變性，儘管圖片平移，卷積操作也能正常抽取特徵， 因此 ResNet50 與 InceptionResNetV2 最後使用 Global Average Pooling 分類，應可正確分類，但卻失敗了。</p>
+<p>失敗的原因是因為忽略 stride， stride 會造成失去平移不變性，只有當平移像素為 stride 的整數倍才能維持 translation invariance。</p>
+<p>論文中進行了一連串的證明。</p>
+<img src="/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/image04.png" class="" title="Fig.4 image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1805.12177.pdf">
+
+<p>Fig.4 中</p>
+<ul>
+<li>A 部分有三張圖，分別垂直位移一個像素。</li>
+<li>B 部分表示各網路不同層的特徵圖。隨著層次增加，特徵越容易消失，表示經過越多 subsampling 造成特徵無法平移。</li>
+</ul>
+<img src="/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/image05.png" class="" title="Fig.5 image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1805.12177.pdf">
+
+<p>Fig.5 針對網路淺層訓練分類器，淺層分類器預測改變量小於 5 % ，但隨著網路越深 subsampling 操作與 nonlinearities 使得特徵不再具有可平移性。</p>
+<p>論文中提到如何讓 CNNs 可平移，stride 的頻率應小於 Nyquist frequency，當 CNNs 為單純的線性，把輸入圖片模糊化，可以使圖片不包含高於 Nyquist limit 的頻率，但因為 CNNs 包含非線性的轉換，所以會增加不存在於輸入圖的高頻，使 CNNs 更難維持平移不變性。</p>
+<h1 id="Why-don’t-modern-CNNs-learn-to-be-invariant-from-data-augmentation"><a href="#Why-don’t-modern-CNNs-learn-to-be-invariant-from-data-augmentation" class="headerlink" title="Why don’t modern CNNs learn to be invariant from data augmentation?"></a>Why don’t modern CNNs learn to be invariant from data augmentation?</h1><p>根據前一節的討論，我們預期 CNN 架構是有機會能透過 data augmentation 學習，學到一些 filters 其具有低頻的 Fourier transform ，獲得平移不變的能力。</p>
+<p>儘管預期如此但為什麼對於 1 個 pixel 的平移仍造成預測改變率上升？</p>
+<p>論文提到 data augemtation 僅能讓網路學習到類似於訓練集圖片的平移不變性，不代表能學習到對任何圖片輸入的平移不變性。</p>
+<p>我們會預期網路能對於不存在於訓練集的圖片有泛化能力，但事實上這種泛化可能僅限至於相似於訓練圖像的圖像。</p>
+<img src="/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/image06.png" class="" title="Fig.6 image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1805.12177.pdf">
+
+<p>Fig.6 顯示 ImageNet 資料集對於物件的特定位置與大小有相當大偏好，在 ImageNet 中 Tibetan terrier 幾乎所有這類別的圖片都是將狗的臉放中間的特寫，所以可以預期網路可以在這位置與大小的小範圍內有一定的不變性。</p>
+<p>Fig.2 也驗證了物件大小類似於訓練時的大小，預測改變率較低，相反的改變量就大。</p>
+<p>Fig.7 總結了與訓練集的類似度是重要的影響因素，VGG16 與 ResNet50 輸入圖片大小為 224 ， InceptionResNetV2 為 229。圖中可以發現越接近輸入的大小，對微小轉換的變化率就越低。</p>
+<img src="/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/image07.png" class="" title="Fig.7 image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1805.12177.pdf">
+
+<img src="/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/image08.png" class="" title="Fig.8 image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1805.12177.pdf">
+
+<p>Fig.8 作者進一步將圖片分為為 Typical 與 Atypical做實驗。</p>
+<img src="/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/image09.png" class="" title="Fig.9 image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1805.12177.pdf">
+
+<p>Fig.9 顯示類似度高的圖片其預測變化率低。</p>
+<h1 id="Possible-Solutions"><a href="#Possible-Solutions" class="headerlink" title="Possible Solutions"></a>Possible Solutions</h1><p>作者提出了三個改進方法 Antialiasing 、 Increased Data Augmentation 、 Reducing subsampling 。</p>
+<h2 id="Antialiasing"><a href="#Antialiasing" class="headerlink" title="Antialiasing"></a>Antialiasing</h2><p>在 <a href="https://arxiv.org/abs/1904.11486" target="_blank" rel="noopener">Making Convolutional Networks Shift-Invariant Again</a> 中對於 pooling 做了改進， 對於 CIFAR10 有好的效果，但對於 Imagenet 則效果有限。</p>
+<img src="/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/image10.png" class="" title="Fig.10 image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1805.12177.pdf">
+
+<p>Fig.10 顯示出當物體大小與訓練集不同時，其實 Antialiasing 效果就沒那麼明顯</p>
+<img src="/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/image11.png" class="" title="Fig.11 image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1805.12177.pdf">
+
+<p>Fig.11 顯示出非線性的操作會造成網路失去平移能力</p>
+<h2 id="Increased-Data-Augmentation"><a href="#Increased-Data-Augmentation" class="headerlink" title="Increased Data Augmentation"></a>Increased Data Augmentation</h2><p>Fig.12 顯示對於 CIFAR10 資料集加上額外的 Data Augmentation，實驗結果顯示 Data Augmentation 僅能增加對於訓練時使用相同策略圖片的平移不變性</p>
+<img src="/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/image12.png" class="" title="Fig.12 image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1805.12177.pdf">
+
+<h2 id="Reducing-subsampling"><a href="#Reducing-subsampling" class="headerlink" title="Reducing subsampling"></a>Reducing subsampling</h2><p>減少 subsampling 會造成巨大的運算量，實際上較難實行。</p>
+<p>Fig.13 對此做了實驗，使用 subsampling-free CNN 在 CIFAR10 上達到很好的結果。</p>
+<img src="/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/image13.png" class="" title="Fig.13 image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1805.12177.pdf">
+
+<h1 id="Discussion"><a href="#Discussion" class="headerlink" title="Discussion"></a>Discussion</h1><p>CNNs 設計的動機是基於卷積與池化能給予平移與小的變形有不變性。</p>
+<p>論文中證明一旦經過 subsampling 或使用 strtide ，不變性將會失效，是因為 CNNs 忽略了 classic sampling theorem。</p>
+<p>另一方面儘管使用 data augmentation 能讓 CNN 學習到不變性的可能，但論文中也證明了並非如此。</p>
+<p>data augmentation 僅能教導網路對於一些相似圖片具有平移不變性，這些圖片相似於訓練過程中的 typical images ，圖片遵守 photographer’s bias。</p>
+<p>能改進 CNNs 不變性的的方法</p>
+<ol>
+<li><p>sampling theorem 指出模糊特徵能夠克服 subsampling 會使 translation invariance 消失的特性</p>
+</li>
+<li><p>調整 CNNs 的結構，參考 Sifre and Mallat, 2013; Gens and Domingos, 2014; Cheng et al., 2016a,b; Dieleman et al.,<br>2016, 2015; Xu et al., 2014; Worrall et al., 2017; Cohen and Welling, 2016</p>
+</li>
+</ol>
+<p>但仍要注意這最終也有可能損害對於包含大量 photographer’s bias 的資料集的效能。</p>
+<p>內容不一定完全對，如果錯誤在麻煩幫我指出，感謝。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/06/25/Deformable-Convolutional-Network/" rel="prev" title="Deformable Convolutional Network (DCNv1)">
+      <i class="fa fa-chevron-left"></i> Deformable Convolutional Network (DCNv1)
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Introduction"><span class="nav-number">2.</span> <span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Quantifying-the-lack-of-invariance-in-modern-CNNs"><span class="nav-number">3.</span> <span class="nav-text">Quantifying the lack of invariance in modern CNNs</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Ignoring-the-Sampling-Theorem"><span class="nav-number">4.</span> <span class="nav-text">Ignoring the Sampling Theorem</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Why-don’t-modern-CNNs-learn-to-be-invariant-from-data-augmentation"><span class="nav-number">5.</span> <span class="nav-text">Why don’t modern CNNs learn to be invariant from data augmentation?</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Possible-Solutions"><span class="nav-number">6.</span> <span class="nav-text">Possible Solutions</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Antialiasing"><span class="nav-number">6.1.</span> <span class="nav-text">Antialiasing</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Increased-Data-Augmentation"><span class="nav-number">6.2.</span> <span class="nav-text">Increased Data Augmentation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reducing-subsampling"><span class="nav-number">6.3.</span> <span class="nav-text">Reducing subsampling</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Discussion"><span class="nav-number">7.</span> <span class="nav-text">Discussion</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Fan</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/chensheep" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;chensheep" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:chensheep1005@gmail.com" title="E-Mail → mailto:chensheep1005@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Fan</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+<script>
+  (function() {
+    function leancloudSelector(url) {
+      url = encodeURI(url);
+      return document.getElementById(url).querySelector('.leancloud-visitors-count');
+    }
+
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = decodeURI(visitors.id);
+      var title = visitors.dataset.flagTitle;
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            leancloudSelector(url).innerText = counter.time + 1;
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .catch(error => {
+                console.error('Failed to save visitor count', error);
+              });
+          } else {
+              Counter('post', '/classes/Counter', { title, url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.error('Failed to create', error);
+                });
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return decodeURI(element.id);
+      });
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url: { '$in': entries } })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          for (let url of entries) {
+            let target = results.find(item => item.url === url);
+            leancloudSelector(url).innerText = target ? target.time : 0;
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    let { app_id, app_key, server_url } = {"enable":true,"app_id":"mxFovcMsuWm6G1UwDaqorGAc-MdYXbMMI","app_key":"Leux2MapbUfBIJaE1yWrR0Cw","server_url":null,"security":false};
+    function fetchData(api_server) {
+      var Counter = (method, url, data) => {
+        return fetch(`${api_server}/1.1${url}`, {
+          method,
+          headers: {
+            'X-LC-Id'     : app_id,
+            'X-LC-Key'    : app_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        if (CONFIG.hostname !== location.hostname) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    }
+
+    let api_server = app_id.slice(-9) !== '-MdYXbMMI' ? server_url : `https://${app_id.slice(0, 8).toLowerCase()}.api.lncldglobal.com`;
+
+    if (api_server) {
+      fetchData(api_server);
+    } else {
+      fetch('https://app-router.leancloud.cn/2/route?appId=' + app_id)
+        .then(response => response.json())
+        .then(({ api_server }) => {
+          fetchData('https://' + api_server);
+        });
+    }
+  })();
+</script>
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  <script color='0,0,255' opacity='0.5' zIndex='-1' count='99' src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+  function loadCount() {
+    var d = document, s = d.createElement('script');
+    s.src = 'https://chensheep.disqus.com/count.js';
+    s.id = 'dsq-count-scr';
+    (d.head || d.body).appendChild(s);
+  }
+  // defer loading until the whole page loading is completed
+  window.addEventListener('load', loadCount, false);
+</script>
+<script>
+  var disqus_config = function() {
+    this.page.url = "https://chensheep.github.io/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/";
+    this.page.identifier = "2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/";
+    this.page.title = "Why do deep convolutional networks generalize so poorly to small image transformations?";
+    };
+  NexT.utils.loadComments(document.querySelector('#disqus_thread'), () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://chensheep.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+</body>
+</html>
