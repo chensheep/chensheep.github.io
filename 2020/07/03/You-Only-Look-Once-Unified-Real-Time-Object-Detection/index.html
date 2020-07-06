@@ -21,27 +21,29 @@
     var CONFIG = {"hostname":"chensheep.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="論文請參考 Squeeze-and-Excitation Networks 。 介紹Squeeze-and-Excitation Network（SENet）是2017是ISVRC classification performance最佳的深度學習網路。SENet針對特徵channel間的相關聯性進行建模，透過計算將重要的特徵圖加重權重，以提升準確率，在這之後SKNet也使用類似的方法，只是是">
+  <meta name="description" content="論文請參考arXiv:1506.02640。 介紹YOLOv1 於 2016 年提出，將 object detection 當成單一回歸問題去解決，分成預測 bounding boxes 與 class possibilities。 與兩階段 R-CNN 系列不同，YOLOv1 使用單一網路，可以 end-to-end 訓練， 因此 YOLOv1 預測速度可達 45 FPS。 更快的同時， Y">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Squeeze-and-Excitation Network">
-<meta property="og:url" content="https://chensheep.github.io/2019/11/08/Squeeze-and-Excitation-Network/index.html">
+<meta property="og:title" content="You Only Look Once: Unified, Real-Time Object Detection">
+<meta property="og:url" content="https://chensheep.github.io/2020/07/03/You-Only-Look-Once-Unified-Real-Time-Object-Detection/index.html">
 <meta property="og:site_name" content="Fan Programming Blog">
-<meta property="og:description" content="論文請參考 Squeeze-and-Excitation Networks 。 介紹Squeeze-and-Excitation Network（SENet）是2017是ISVRC classification performance最佳的深度學習網路。SENet針對特徵channel間的相關聯性進行建模，透過計算將重要的特徵圖加重權重，以提升準確率，在這之後SKNet也使用類似的方法，只是是">
+<meta property="og:description" content="論文請參考arXiv:1506.02640。 介紹YOLOv1 於 2016 年提出，將 object detection 當成單一回歸問題去解決，分成預測 bounding boxes 與 class possibilities。 與兩階段 R-CNN 系列不同，YOLOv1 使用單一網路，可以 end-to-end 訓練， 因此 YOLOv1 預測速度可達 45 FPS。 更快的同時， Y">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://chensheep.github.io/2019/11/08/Squeeze-and-Excitation-Network/senet.png">
-<meta property="og:image" content="https://chensheep.github.io/2019/11/08/Squeeze-and-Excitation-Network/fsq.png">
-<meta property="og:image" content="https://chensheep.github.io/2019/11/08/Squeeze-and-Excitation-Network/fex.png">
-<meta property="og:image" content="https://chensheep.github.io/2019/11/08/Squeeze-and-Excitation-Network/fscale.png">
-<meta property="og:image" content="https://chensheep.github.io/2019/11/08/Squeeze-and-Excitation-Network/error_senet.jpg">
-<meta property="og:image" content="https://chensheep.github.io/2019/11/08/Squeeze-and-Excitation-Network/se_inception.png">
-<meta property="og:image" content="https://chensheep.github.io/2019/11/08/Squeeze-and-Excitation-Network/se_resnet.png">
-<meta property="article:published_time" content="2019-11-08T13:26:16.000Z">
-<meta property="article:modified_time" content="2020-06-23T08:04:26.644Z">
+<meta property="og:image" content="https://chensheep.github.io/2020/07/03/You-Only-Look-Once-Unified-Real-Time-Object-Detection/image01.png">
+<meta property="og:image" content="https://chensheep.github.io/2020/07/03/You-Only-Look-Once-Unified-Real-Time-Object-Detection/image02.png">
+<meta property="og:image" content="https://chensheep.github.io/2020/07/03/You-Only-Look-Once-Unified-Real-Time-Object-Detection/image03.png">
+<meta property="og:image" content="https://chensheep.github.io/2020/07/03/You-Only-Look-Once-Unified-Real-Time-Object-Detection/image04.png">
+<meta property="og:image" content="https://chensheep.github.io/2020/07/03/You-Only-Look-Once-Unified-Real-Time-Object-Detection/image05.png">
+<meta property="og:image" content="https://chensheep.github.io/2020/07/03/You-Only-Look-Once-Unified-Real-Time-Object-Detection/image06.webp">
+<meta property="og:image" content="https://chensheep.github.io/2020/07/03/You-Only-Look-Once-Unified-Real-Time-Object-Detection/image07.webp">
+<meta property="og:image" content="https://chensheep.github.io/2020/07/03/You-Only-Look-Once-Unified-Real-Time-Object-Detection/image08.webp">
+<meta property="og:image" content="https://chensheep.github.io/2020/07/03/You-Only-Look-Once-Unified-Real-Time-Object-Detection/image09.webp">
+<meta property="article:published_time" content="2020-07-03T04:04:46.000Z">
+<meta property="article:modified_time" content="2020-07-06T06:32:28.435Z">
 <meta property="article:author" content="Fan">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://chensheep.github.io/2019/11/08/Squeeze-and-Excitation-Network/senet.png">
+<meta name="twitter:image" content="https://chensheep.github.io/2020/07/03/You-Only-Look-Once-Unified-Real-Time-Object-Detection/image01.png">
 
-<link rel="canonical" href="https://chensheep.github.io/2019/11/08/Squeeze-and-Excitation-Network/">
+<link rel="canonical" href="https://chensheep.github.io/2020/07/03/You-Only-Look-Once-Unified-Real-Time-Object-Detection/">
 
 
 <script id="page-configurations">
@@ -54,7 +56,7 @@
   };
 </script>
 
-  <title>Squeeze-and-Excitation Network | Fan Programming Blog</title>
+  <title>You Only Look Once: Unified, Real-Time Object Detection | Fan Programming Blog</title>
   
 
 
@@ -159,7 +161,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://chensheep.github.io/2019/11/08/Squeeze-and-Excitation-Network/">
+    <link itemprop="mainEntityOfPage" href="https://chensheep.github.io/2020/07/03/You-Only-Look-Once-Unified-Real-Time-Object-Detection/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -172,7 +174,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Squeeze-and-Excitation Network
+          You Only Look Once: Unified, Real-Time Object Detection
         </h1>
 
         <div class="post-meta">
@@ -182,18 +184,18 @@
               </span>
               <span class="post-meta-item-text">Posted on</span>
 
-              <time title="Created: 2019-11-08 21:26:16" itemprop="dateCreated datePublished" datetime="2019-11-08T21:26:16+08:00">2019-11-08</time>
+              <time title="Created: 2020-07-03 12:04:46" itemprop="dateCreated datePublished" datetime="2020-07-03T12:04:46+08:00">2020-07-03</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-06-23 16:04:26" itemprop="dateModified" datetime="2020-06-23T16:04:26+08:00">2020-06-23</time>
+                <time title="Modified: 2020-07-06 14:32:28" itemprop="dateModified" datetime="2020-07-06T14:32:28+08:00">2020-07-06</time>
               </span>
 
           
-            <span id="/2019/11/08/Squeeze-and-Excitation-Network/" class="post-meta-item leancloud_visitors" data-flag-title="Squeeze-and-Excitation Network" title="Views">
+            <span id="/2020/07/03/You-Only-Look-Once-Unified-Real-Time-Object-Detection/" class="post-meta-item leancloud_visitors" data-flag-title="You Only Look Once: Unified, Real-Time Object Detection" title="Views">
               <span class="post-meta-item-icon">
                 <i class="fa fa-eye"></i>
               </span>
@@ -208,8 +210,8 @@
       </span>
       <span class="post-meta-item-text">Disqus: </span>
     
-    <a title="disqus" href="/2019/11/08/Squeeze-and-Excitation-Network/#disqus_thread" itemprop="discussionUrl">
-      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2019/11/08/Squeeze-and-Excitation-Network/" itemprop="commentCount"></span>
+    <a title="disqus" href="/2020/07/03/You-Only-Look-Once-Unified-Real-Time-Object-Detection/#disqus_thread" itemprop="discussionUrl">
+      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2020/07/03/You-Only-Look-Once-Unified-Real-Time-Object-Detection/" itemprop="commentCount"></span>
     </a>
   </span>
   
@@ -224,51 +226,128 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <img src="/2019/11/08/Squeeze-and-Excitation-Network/senet.png" class="" title="Fig.1 SeNet (image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1709.01507.pdf)">
+        <img src="/2020/07/03/You-Only-Look-Once-Unified-Real-Time-Object-Detection/image01.png" class="" title="Fig.01 YOLOv1 Overview image source : [1]">
 
-<p>論文請參考 <a href="http://openaccess.thecvf.com/content_cvpr_2018/html/Hu_Squeeze-and-Excitation_Networks_CVPR_2018_paper.html" target="_blank" rel="noopener">Squeeze-and-Excitation Networks</a> 。</p>
-<h1 id="介紹"><a href="#介紹" class="headerlink" title="介紹"></a>介紹</h1><p>Squeeze-and-Excitation Network（SENet）是2017是ISVRC classification performance最佳的深度學習網路。SENet針對特徵channel間的相關聯性進行建模，透過計算將重要的特徵圖加重權重，以提升準確率，在這之後SKNet也使用類似的方法，只是是針對使用不同大小卷積核產生的特徵圖加權，使網路抽取不同大小的目標，SKNet說明請參考 <a href="/2020/06/22/Select-Kernel-Networks/" title="連結">連結</a>。</p>
+<p>論文請參考<a href="https://arxiv.org/abs/1506.02640" target="_blank" rel="noopener">arXiv:1506.02640</a>。</p>
+<h1 id="介紹"><a href="#介紹" class="headerlink" title="介紹"></a>介紹</h1><p>YOLOv1 於 2016 年提出，將 object detection 當成單一回歸問題去解決，分成預測 bounding boxes 與 class possibilities。</p>
+<p>與兩階段 R-CNN 系列不同，YOLOv1 使用單一網路，可以 end-to-end 訓練， 因此 YOLOv1 預測速度可達 45 FPS。</p>
+<p>更快的同時， YOLOv1 localization errors 雖然更高，但對於背景卻有更低的 false positives 。</p>
+<p>YOLOv1 對物體特徵有更好的泛化效果，相比於 DPM 與 R-CNN，當資料集 domain 改變時能有更好的預測效果。</p>
 <a id="more"></a>
 
-<h1 id="結構與原理"><a href="#結構與原理" class="headerlink" title="結構與原理"></a>結構與原理</h1><p>Fig.1為SENet的block，從最左邊看起分四個函數Ftr、Fsq、Fex與Fscale。</p>
+<h1 id="YOLOv1-作法"><a href="#YOLOv1-作法" class="headerlink" title="YOLOv1 作法"></a>YOLOv1 作法</h1><img src="/2020/07/03/You-Only-Look-Once-Unified-Real-Time-Object-Detection/image02.png" class="" title="Fig.02 YOLOv1 image source : [1]">
+
+<p>Fig.02 圖中 YOLOv1 使用整張圖片的特徵圖去預測 bounding box （上半部分），同時預測 grid （下半部分）的類別。</p>
+<p>詳細作法：</p>
 <ul>
-<li>Ftr : 傳統的卷積結構，X為輸入Ｕ為輸出，輸入的大小為H’ X W’而channel為C’，經過卷積Ftr輸出的U的大小為H x W而channel數為C。</li>
+<li><p>圖片分成  S X S 個 grid ，每個 grid 有 B 個 bounding box</p>
+</li>
+<li><p>每個 grid 預測一種類別 （Fig.02 下半部分）</p>
+</li>
+<li><p>每個 bounding box 預測 x, y, w, h, c （Fig.02 上半部分）</p>
+<ul>
+<li>(x, y) 表示 bounding box 與 grid 邊緣的距離，介於 0 ~ 1 之間。</li>
+<li>w, h 表示預測框大小， w, h 為除以圖片寬高後的值，介於 0 ~ 1 之間。</li>
+<li>c 為 confidence ，表示 bounding box 中是否包含物件。</li>
 </ul>
-<p>接著開始為SENet增加的結構。</p>
-<img src="/2019/11/08/Squeeze-and-Excitation-Network/fsq.png" class="" title="Fig.2 Fsq (image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1709.01507.pdf)">
+</li>
+<li><p>YOLOv1 選定 Ｓ 為 7 ， B 為 2，共有 98 個 bounding box</p>
+</li>
+<li><p>只對每個 grid 預測一種類別，儘管有兩個 bounding box 不代表可以同時預測兩個不同類物體</p>
+</li>
+<li><p>bounding box 可以理解成 R-CNN (Fig.03) 中的 RoI</p>
+</li>
+</ul>
+<img src="/2020/07/03/You-Only-Look-Once-Unified-Real-Time-Object-Detection/image03.png" class="" title="Fig.03 Faster R-CNN image source : [2]">
 
 <ul>
-<li>Fsq :<br>參考Fig.2，Fsq為squeeze的過程，先對U做Global Average Pooling，由Fig.2公式可得知，作者是針對每個feature map做加總取平均值，再輸出一個1<em>1</em>C的向量，將空間上所有的點的訊息平均成一個值，作者提到用Global Average Pooling可以屏蔽掉空間上分佈的訊息，讓接下來再做scale的計算能更加精確，這也對應到其效果比Network In Network（<a href="/2019/11/29/Network-In-Network/" title="Network In Network 解析">Network In Network 解析</a>）更好，因為Network In Network是對每個channel直接做1X1卷積，並沒有屏蔽掉空間上分佈的訊息。</li>
+<li>confidence 計算方式為 Pr(Object) * IOU (groundtruth) (Fig.04)</li>
 </ul>
-<img src="/2019/11/08/Squeeze-and-Excitation-Network/fex.png" class="" title="Fig.3 Fex (image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1709.01507.pdf)">
+<img src="/2020/07/03/You-Only-Look-Once-Unified-Real-Time-Object-Detection/image04.png" class="" title="Fig.04 Confidence image source : [1]">
 
 <ul>
-<li>Fex :<br>在取得1<em>1</em>C向量後，由Fig.3公式可得，Fex是由兩個全鏈結層來實現，第一個全鏈結層W1z，將z從C個channel壓縮成C/r個channel，再經過一個RELU，第二個全鏈結層W2z將前個輸出從C/r輸出成C個channel，再經過Sigmoid，將值限制到[0,1]範圍。<br>r的部分作者稱之為壓縮比例，並在各種嘗試下作者提出r=16時在性能和計算間最平衡。<br>為什麼要使用全鏈結層？利用channel相關聯性來訓練出真正的scale。</li>
+<li>Pr(Object) 表示 grid 裡是否包含物件，包含則為 1 ，不包含則為 0，判斷方式為物件的中心座標是否在 grid 裡</li>
 </ul>
-<img src="/2019/11/08/Squeeze-and-Excitation-Network/fscale.png" class="" title="Fig.4 Fscale (image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1709.01507.pdf)">
+<h1 id="Network-Architecture"><a href="#Network-Architecture" class="headerlink" title="Network Architecture"></a>Network Architecture</h1><img src="/2020/07/03/You-Only-Look-Once-Unified-Real-Time-Object-Detection/image05.png" class="" title="Fig.05 The Architecture image source : [1]">
+
+<p>Fig.05 為作者實驗的網路架構，總共有 24 層卷積層與 2 層全鏈結層。</p>
+<ul>
+<li>作者針對前 20 層卷積使用 ImageNet 1000-class competition dataset [4] 預訓練</li>
+<li>再加上其餘 4 層卷積與 2 層全鏈結層，參數隨機初始化</li>
+<li>activation function 為 leaky ReLU</li>
+<li>最後輸出的 7 X 7 X 30 的向量，進一步參考 Fig.06</li>
+</ul>
+<img src="/2020/07/03/You-Only-Look-Once-Unified-Real-Time-Object-Detection/image06.webp" class="" title="Fig.06 Input -&gt; Output image source : [3]">
+
+<p>Fig.06 表示輸入與輸出對應的結果，可見輸出橘色部分，接著討論橘色部分設計</p>
+<h1 id="Label"><a href="#Label" class="headerlink" title="Label"></a>Label</h1><img src="/2020/07/03/You-Only-Look-Once-Unified-Real-Time-Object-Detection/image07.webp" class="" title="Fig.07 Labels : [3]">
+
+<p>Fig.07 即為 Fig.06 橘色部分。</p>
+<p>Fig.07 顯示 Label 如何設置</p>
+<ul>
+<li>自行車類別的值為 1 表示這個 grid 預測的類別為自行車，因此其他類別值為 0</li>
+<li>每個 grid 有兩個 bounding box，藍色與黃色部份</li>
+<li>使用哪個 bounding box 預測物件，是由計算輸出結果決定，選定 IoU 較高的 bounding box</li>
+<li>假設第一個 bounding box IoU 較高，就將其 confidence 設為 1 ，如 Fig.07 所示， bounding box 座標（黃色部份）也要填上正確的座標值</li>
+</ul>
+<h1 id="Loss-function"><a href="#Loss-function" class="headerlink" title="Loss function"></a>Loss function</h1><img src="/2020/07/03/You-Only-Look-Once-Unified-Real-Time-Object-Detection/image08.webp" class="" title="Fig.08 Label &amp; Network Output : [3]">
+
+<p>Fig.08 分為上下兩個部分，上半部分為樣本標籤，下半部分為網路輸出的結果，對應到 Fig.09 Loss function 。</p>
+<img src="/2020/07/03/You-Only-Look-Once-Unified-Real-Time-Object-Detection/image09.webp" class="" title="Fig.09 Loss function : [3]">
 
 <ul>
-<li>Fscale :<br>取得scale向量之後，Fscale公式參考Fig.4，將s element-wise與U相乘，增強重要的特徵，加權後新的特徵作者稱之為feature recalibration。</li>
+<li>黃色項計算 bounding box 的損失，分為中心位置與長寬的損失，損失只計算含有物件的 bounding box</li>
+<li>藍色項計算 confidence 的損失，分為 bounding box 中有對象（第三列）與沒對象（第四列）</li>
+<li>綠色計算分類的損失，損失只計算含有物件的 grid</li>
+<li>損失函數計算方式都是使用 sum-squared error</li>
+<li>第二列對於寬高開根號的原因，是因為當目標物件大小不同時，直接取差值對大物件敏感度較低</li>
+<li>λcoord 用來調整 localization error 與 classification error 的權重，作者指出兩者權重一樣是不理想的，論文中設為 5</li>
+<li>λnoobj 設定為 0.5 用來減少沒有物件時的 confidence 的損失，因為大部分的 bounding box 其實不包含物件，會造成網路不穩定難以收斂</li>
 </ul>
-<h1 id="錯誤結構分析"><a href="#錯誤結構分析" class="headerlink" title="錯誤結構分析"></a>錯誤結構分析</h1><img src="/2019/11/08/Squeeze-and-Excitation-Network/error_senet.jpg" class="" title="Fig.5 Comparasion With Different Structure (image source : https:&#x2F;&#x2F;zhuanlan.zhihu.com&#x2F;p&#x2F;32702350)">
-
-<p>參考Fig5.，三種不恰當的設計</p>
+<h1 id="NMS"><a href="#NMS" class="headerlink" title="NMS"></a>NMS</h1><p>網路最後輸出 7 X 7 X 30 的向量，再藉由 NMS 選出預測的框框。</p>
+<p>NMS 作法</p>
 <ol>
-<li>squeeze的輸出直接當作scale，基本上Global Average Pooling是沒有參數可以訓練的，沒辦法透過訓練去學習出各個通道的重要性。</li>
-<li>直接透過卷積層，卷積時就已經有channel相關聯性在裡面，為什麼還需要SENet結構？那是因為卷積有包括空間成份在裡面，為了排除空間成份的干擾，先用Global Average Pooling壓縮成一個點再做卷積，去找出channel間的關聯性，也因沒了高寬，這種卷積其實就是全鏈結層。</li>
-<li>因為X跟U的相關聯性是不同的，將用U計算出來的scal使用到X上不合適。</li>
+<li>計算 confidence score<ul>
+<li>confidence score 算法為將 confidence（Fig.8 藍色部分）乘上類別預測的機率（Fig.8 綠色部分）</li>
+<li>共有 7 X 7 = 49 個 grid</li>
+<li>共有 49 X 2 = 98 個 bounding box</li>
+<li>每個 bounding box 的 cofidence 乘上 20 個類別的機率，得到共 98 X 20 = 1960 個 confidence score</li>
+<li>每類有 1960 / 20 = 98 個 confidence score</li>
+</ul>
+</li>
+<li>分別對每類進行下列操作<ol>
+<li>設置 confidence score 的 threshold ， 把 confidence score 低於 threshold 的 bounding box 移除</li>
+<li>從剩下的 bounding box 中，取出 confidence score 最高者放到輸出 list 中，剩下的與其計算 IoU ，去除 IoU 值高於一定值的 bounding box ，表示其重疊性高</li>
+<li>重複 2.</li>
 </ol>
-<h1 id="實現"><a href="#實現" class="headerlink" title="實現"></a>實現</h1><img src="/2019/11/08/Squeeze-and-Excitation-Network/se_inception.png" class="" title="Fig.6 SENet與Inception (image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1709.01507.pdf)">
-
-<img src="/2019/11/08/Squeeze-and-Excitation-Network/se_resnet.png" class="" title="Fig.7 SENet與Resnet (image source : https:&#x2F;&#x2F;arxiv.org&#x2F;pdf&#x2F;1709.01507.pdf)">
-
-<p>由Fig.6與Fig.7可得知SENet很大的優點在於能很方便的套用到現有的網路中，提升性能同時，代價很小。</p>
-<h1 id="總結"><a href="#總結" class="headerlink" title="總結"></a>總結</h1><p>能有效地提升性能，但代價很小，透過對channel進行加權，將有效的訊息進行強化，能應用在Inception,Inception-ResNet,ResNet,ResNeXt網路中。</p>
+</li>
+</ol>
+<p>最後輸出 list 即為預測結果</p>
+<h1 id="總結"><a href="#總結" class="headerlink" title="總結"></a>總結</h1><ul>
+<li><p>優點</p>
+<ol>
+<li>速度快，可達 45 FPS</li>
+<li>訓練與測試階段都會看整張圖片，相比 Fast R-CNN 因其無法看到較全面的內容，導致其將背景預測成物件，YOLO 降低了一半這種錯誤</li>
+<li>學習到物件的泛化特徵</li>
+<li>對於與訓練集不同 domain 或不預期的圖片，有更好的預測能力，大大優於 DPM 與 R-CNN</li>
+</ol>
+</li>
+<li><p>缺點</p>
+<ol>
+<li>accuracy 仍比較低</li>
+<li>對於小物預測效果不好</li>
+</ol>
+</li>
+</ul>
 <h1 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h1><ol>
-<li><a href="https://zhuanlan.zhihu.com/p/32702350" target="_blank" rel="noopener">解读Squeeze-and-Excitation Networks（SENet）</a></li>
-<li><a href="https://zhuanlan.zhihu.com/p/33004957" target="_blank" rel="noopener">深度学习——分类之SENet</a></li>
-<li><a href="https://blog.csdn.net/u013066730/article/details/95217067" target="_blank" rel="noopener">SENet理解</a></li>
+<li><a href="https://arxiv.org/abs/1506.02640" target="_blank" rel="noopener">You Only Look Once: Unified, Real-Time Object Detection</a>。</li>
+<li><a href="https://arxiv.org/abs/1506.01497" target="_blank" rel="noopener">Faster R-CNN: Towards Real-Time Object Detection with Region Proposal Networks</a></li>
+<li><a href="https://www.jianshu.com/p/cad68ca85e27" target="_blank" rel="noopener">YOLO v1深入理解</a></li>
+<li><a href="https://arxiv.org/abs/1409.0575" target="_blank" rel="noopener">O. Russakovsky, J. Deng, H. Su, J. Krause, S. Satheesh, S. Ma, Z. Huang, A. Karpathy, A. Khosla, M. Bernstein, A. C. Berg, and L. Fei-Fei. ImageNet Large Scale Visual Recognition Challenge. International Journal of Computer Vision (IJCV), 2015. 3</a></li>
+<li><a href="https://blog.csdn.net/u014380165/article/details/72616238" target="_blank" rel="noopener">YOLO（You Only Look Once）算法详解</a></li>
+<li><a href="https://medium.com/@chenchoulo/yolo-%E4%BB%8B%E7%B4%B9-4307e79524fe" target="_blank" rel="noopener">YOLO — You Only Look Once 介紹</a></li>
 </ol>
+<p>如果有錯誤再麻煩指出，感謝。</p>
 
     </div>
 
@@ -283,11 +362,11 @@
 
         
     <div class="post-nav">
-      <div class="post-nav-item"></div>
       <div class="post-nav-item">
-    <a href="/2019/11/29/Network-In-Network/" rel="next" title="Network In Network">
-      Network In Network <i class="fa fa-chevron-right"></i>
+    <a href="/2020/07/02/Why-do-deep-convolutional-networks-generalize-so-poorly-to-small-image-transformations/" rel="prev" title="Why do deep convolutional networks generalize so poorly to small image transformations?">
+      <i class="fa fa-chevron-left"></i> Why do deep convolutional networks generalize so poorly to small image transformations?
     </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -353,7 +432,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#介紹"><span class="nav-number">1.</span> <span class="nav-text">介紹</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#結構與原理"><span class="nav-number">2.</span> <span class="nav-text">結構與原理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#錯誤結構分析"><span class="nav-number">3.</span> <span class="nav-text">錯誤結構分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#實現"><span class="nav-number">4.</span> <span class="nav-text">實現</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#總結"><span class="nav-number">5.</span> <span class="nav-text">總結</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Reference"><span class="nav-number">6.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#介紹"><span class="nav-number">1.</span> <span class="nav-text">介紹</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#YOLOv1-作法"><span class="nav-number">2.</span> <span class="nav-text">YOLOv1 作法</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Network-Architecture"><span class="nav-number">3.</span> <span class="nav-text">Network Architecture</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Label"><span class="nav-number">4.</span> <span class="nav-text">Label</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Loss-function"><span class="nav-number">5.</span> <span class="nav-text">Loss function</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NMS"><span class="nav-number">6.</span> <span class="nav-text">NMS</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#總結"><span class="nav-number">7.</span> <span class="nav-text">總結</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Reference"><span class="nav-number">8.</span> <span class="nav-text">Reference</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -570,9 +649,9 @@
 </script>
 <script>
   var disqus_config = function() {
-    this.page.url = "https://chensheep.github.io/2019/11/08/Squeeze-and-Excitation-Network/";
-    this.page.identifier = "2019/11/08/Squeeze-and-Excitation-Network/";
-    this.page.title = "Squeeze-and-Excitation Network";
+    this.page.url = "https://chensheep.github.io/2020/07/03/You-Only-Look-Once-Unified-Real-Time-Object-Detection/";
+    this.page.identifier = "2020/07/03/You-Only-Look-Once-Unified-Real-Time-Object-Detection/";
+    this.page.title = "You Only Look Once: Unified, Real-Time Object Detection";
     };
   NexT.utils.loadComments(document.querySelector('#disqus_thread'), () => {
     if (window.DISQUS) {
